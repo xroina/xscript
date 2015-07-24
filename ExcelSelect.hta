@@ -1,0 +1,175 @@
+<html><head>
+<title>ExcelSelect</title>
+<style type="text/css">
+body {
+    font-size : 9pt;
+}
+h1 {
+    font-size : 10pt;
+}
+table {
+    border-collapse: collapse;
+}
+th {
+    border: 1px solid gray;
+	white-space: nowrap;
+}
+td {
+	width : 10em;
+    border: 1px solid gray;
+}
+thead {
+    background-color: LightGreen;
+}
+tfoot {
+    background-color: Pink;
+}
+</style>
+<script type="text/javascript" src="Utility.js"></script>
+<script type="text/javascript" src="Connection.js"></script>
+<script type="text/javascript" src="FileHandle.js"></script>
+<script langage="text/javascript"><!--
+
+var fs = new ActiveXObject("Scripting.FileSystemObject");
+
+var TIMEOUT = 0;
+
+//====================================================================================================================
+function getTable(file) {
+	document.getElementById('result').innerHTML = "";
+	clearMessage();
+	document.form.sheets.innerHTML = "";
+
+	if (!file.match(/\.xlsx?$/)) return;
+	if (!fs.FileExists(file)) return;
+
+	var index = document.form.driver.selectedIndex;
+	var driver = document.form.driver.options[index].text;
+	var cn = new Connection(driver, {'file':file, readonly:1});
+	if(!cn.exists) return;
+
+	for(i in cn.table) {
+		var option = document.createElement('OPTION');
+		if(i == 0) option.selected;
+		option.innerHTML = cn.table[i];
+		document.form.sheets.appendChild(option);
+	}
+	cn.final();
+}
+
+//====================================================================================================================
+function Execute(file, table) {
+	document.getElementById('result').innerHTML = "";
+	clearMessage();
+
+	if(!file.match(/\.xlsx?$/)) { info("<B>Excelファイルではありません:"+file); return; }
+	if(!fs.FileExists(file)) { info("<B>ファイルがありません:"+file); return; }
+	if(!table) return;
+
+	var index = document.form.driver.selectedIndex;
+	var driver = document.form.driver.options[index].text;
+
+	var cn = new Connection(driver, {'file':file, readonly:1});
+	if(!cn.exists) return;
+
+	cn.select("* FROM [" + table + "]");
+	
+	var tbl = document.createElement('TABLE');
+	var thd = document.createElement('THEAD');
+	var tr,th,td;
+	// ヘッダ
+	tr = document.createElement('TR');
+	th = document.createElement('TH'); th.style.fontSize = 'xx-small';
+	th.innerHTML = "Field"; tr.appendChild(th);
+	for(var i = 0; i < cn.count(); i++) {
+		var th = document.createElement('TH');
+		th.innerHTML = i; tr.appendChild(th);
+	}
+	thd.appendChild(tr);
+
+	var alias = cn.alias(table);
+	for(var j in alias[0]) {
+		tr = document.createElement('TR');
+		th = document.createElement('TH'); th.style.fontSize = 'xx-small';
+		th.innerHTML = "Name" + j; tr.appendChild(th);
+		for(var i = 0; i < cn.count(); i++) {
+			var th = document.createElement('TH');
+			th.innerHTML = alias[i][j]; tr.appendChild(th);
+		}
+		thd.appendChild(tr);
+	}
+
+	tbl.appendChild(thd);
+	
+	// 本体
+	var tbd = document.createElement('TBODY');
+	for(var line = 1; !cn.eof(); cn.next(), line++) {
+
+		tr = document.createElement('TR');
+		th = document.createElement('TH');
+
+		th.innerHTML = line; tr.appendChild(th);
+
+		for(var i = 0; i < cn.count(); i++) {
+			td = document.createElement('TD');
+			td.innerHTML = cn.item(i);
+			tr.appendChild(td);
+		}
+		tbd.appendChild(tr);
+	}
+	tbl.appendChild(tbd);
+	document.getElementById('result').appendChild(tbl);
+	cn.final();
+}
+//====================================================================================================================
+
+//--></script>
+</head>
+<body>
+
+
+<form name="form">
+<input type="text" name="debug" size=1>
+<br>
+検索パス <span id='xls'></span>
+<br>
+ドライバ
+<select name="driver"></select><br>
+<input type="button" name="gettables" value=" 解析 "><br>
+シート
+<select name="sheets"></select>
+<br>
+<input type="button" name="execute" value=" 実行 ">
+</form>
+
+<div id="result"></div><BR>
+
+</body><script><!--
+
+var fileField = new CreateFileField('xls', GetFileName().replace(/\.[^\.]*$/, '.ini'), true);
+
+drivers = [MSExcel12_OLE_Driver, MSExcel12_ODBC_Driver, MSExcel_8_OLE_Driver, MSExcel_8_ODBC_Driver];
+drivers.push('Provider=Microsoft.ACE.OLEDB.12.0; Extended Properties="Excel 12.0 XML;HDR=NO;IMEX=1;"; Data Source="${file}";');
+
+drivers.push('Driver={Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)}; DBQ=${file}; ReadOnly=${readonly};');
+drivers.push('Provider=Microsoft.ACE.OLEDB.12.0;Extended Properties=Excel 12.0 XML;Data Source=${file};');
+
+for(var i in drivers) {
+	var option = new Option(drivers[i], drivers[i]);
+	if(i == 0) option.selected;
+	option.innerHTML = drivers[i];
+	document.form.driver.appendChild(option);
+}
+
+//イベント定義====================================================================================================================
+document.form.execute.onclick = function() {
+	that.DEBUG = parseInt('0'+document.form.debug.value);
+	var index = document.form.sheets.selectedIndex;
+	Execute(fileField.path.value, document.form.sheets.options[index].text);
+	fileField.write()
+}
+document.form.gettables.onclick = function() { getTable(fileField.path.value); }
+
+//--></script>
+
+</html>
