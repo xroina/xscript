@@ -458,12 +458,12 @@ sub CountLines {
     # 3.1.順番に1文字ずつ処理していく（文字をスキップすることもある）
     while($i <= length $SourceTxt) {
         # 3.1.1.前文字取得
-        $prevCh = "";
+        $prevCh = '';
         $prevCh = substr($SourceTxt, $i - 2, 1) if $i > 1;
         # 3.1.2.現文字取得
         $ch = substr($SourceTxt, $i - 1, 1);
         # 3.1.3.次文字取得
-        $nextCh = "";
+        $nextCh = '';
         $nextCh = substr($SourceTxt, $i , 1) if $i < length $SourceTxt;
 
         # 3.1.4.現在のソース解析状態を判断した上で違う処理をする
@@ -471,7 +471,7 @@ sub CountLines {
         if($ss == $ssCode) {
             # 3.1.5.1.現文字を判断した上で違う処理をする
             # 3.1.5.2.二重引用符の場合
-            if ($ch eq "\"") {
+            if ($ch eq '"') {
                 # 3.1.5.2.1.ソース解析状態を二重引用にする
                 $ss = $ssDoubleQuotation;
                 # 3.1.5.2.2.行の最後文字は現文字にする
@@ -485,22 +485,22 @@ sub CountLines {
                 $lastCodeCharInLine = $ch;
             }
             # 3.1.5.4.スラッシュの場合
-            elsif ($ch eq "/") {
+            elsif ($ch eq '/') {
                 # 3.1.5.4.1.次文字もスラッシュの場合
-                if($nextCh eq "/") {
+                if($nextCh eq '/') {
                     # 3.1.5.4.1.1.ソース解析状態をシングル行コメントにする
                     $ss = $ssSingleLineComment;
                     # 3.1.5.4.1.2.行タイプは空白の場合、コメントにする（1回有効行と判断したらもうコメントに変えられない)
-                    $st = $stComment if $st eq $stEmpty;
+                    $st = $stComment if $st == $stEmpty;
                     # 3.1.5.4.1.3.次文字は分かったのでスキップする
                     $i++;
                 }
                 # 3.1.5.4.2.次文字は星印の場合
-                elsif($nextCh eq "*") {
+                elsif($nextCh eq '*') {
                     # 3.1.5.4.2.1.ソース解析状態をマルチ行コメントにする
                     $ss = $ssMultiLineComment;
                     # 3.1.5.4.2.2.行タイプは空白の場合、コメントにする（1回有効行と判断したらもうコメントに変えられない)
-                    $st = $stComment if $st eq $stEmpty;
+                    $st = $stComment if $st == $stEmpty;
                     # 3.1.5.4.2.3.次文字は分かったのでスキップする
                     $i++;
                 # 3.1.5.4.3.次文字は上記以外の場合
@@ -510,7 +510,7 @@ sub CountLines {
                 }
             }
             # 3.1.5.5.改行の場合
-            elsif ($ch eq "\n") {
+            elsif($ch eq "\n") {
                 # 3.1.5.5.1.ソース解析状態を初期値にする
                 $ss = $ssEmpty;
                 # 3.1.5.5.2.行の結末処理をする
@@ -529,15 +529,15 @@ sub CountLines {
             }
         }
         # 3.1.6.二重引用の場合
-        elsif ($ss == $ssDoubleQuotation) {
+        elsif($ss == $ssDoubleQuotation) {
             # 3.1.6.1.現文字を判断した上で違う処理をする
             # 3.1.6.2.二重引用符の場合
-            if ($ch eq "\"") {
+            if ($ch eq '"') {
                 # 3.1.6.2.1.前文字は「\」の場合（無視できる二重引用符）
-                if($prevCh eq "\\") {
+                if($prevCh eq '\\') {
                     # 3.1.6.2.1.1.何もしない
                 # 3.1.6.2.2.次文字も二重引用符の場合（二重引用符の中に、二重引用符が２つ連続する場合、無視できる）
-                } elsif($nextCh eq "\"") {
+                } elsif($nextCh eq '"') {
                     # 3.1.6.2.2.1次文字は分かったのでスキップする
                     $i++;
                 # 3.1.6.2.3.上記以外の場合検討
@@ -567,13 +567,13 @@ sub CountLines {
         elsif($ss == $ssEmpty) {
             # 3.1.7.1.現文字を判断した上で違う処理をする
             # 3.1.7.2.二重引用符の場合
-            if ($ch eq "\"") {
+            if ($ch eq '"') {
                 # 3.1.7.2.1.ソース解析状態を二重引用にする
                 $ss = $ssDoubleQuotation;
                 # 3.1.7.2.2.行タイプを有効ソースにする
                 $st = $stCode;
                 # 3.1.7.2.3.行の最初文字を現文字にする
-                $firstCodeCharInLine = $ch if $firstCodeCharInLine eq "";
+                $firstCodeCharInLine = $ch if 0 == length $firstCodeCharInLine;
                 # 3.1.7.2.4.行の最後文字を現文字にする
                 $lastCodeCharInLine = $ch;
             }
@@ -584,14 +584,14 @@ sub CountLines {
                 # 3.1.7.2.2.行タイプを有効ソースにする
                 $st = $stCode;
                 # 3.1.7.2.3.行の最初文字を現文字にする
-                $firstCodeCharInLine = $ch if $firstCodeCharInLine eq "";
+                $firstCodeCharInLine = $ch if 0 == length $firstCodeCharInLine;
                 # 3.1.7.2.4.行の最後文字を現文字にする
                 $lastCodeCharInLine = $ch;
             }
             # 3.1.7.3.スラッシュの場合
-            elsif ($ch eq "/") {
+            elsif ($ch eq '/') {
                 # 3.1.7.3.1.次文字はスラッシュの場合
-                if($nextCh eq "/") {
+                if($nextCh eq '/') {
                     # 3.1.7.3.1.1.ソース解析状態をシングル行コメントにする
                     $ss = $ssSingleLineComment;
                     # 3.1.7.3.1.2.行タイプをコメントにする
@@ -600,7 +600,7 @@ sub CountLines {
                     $i++;
                 }
                 # 3.1.7.3.2.次文字は星印の場合
-                elsif($nextCh eq "*") {
+                elsif($nextCh eq '*') {
                     # 3.1.7.3.2.1.ソース解析状態をマルチ行コメントにする
                     $ss = $ssMultiLineComment;
                     # 3.1.7.3.2.2.行タイプをコメントにする
@@ -613,7 +613,7 @@ sub CountLines {
                     # 3.1.7.3.3.1.ソース解析状態を有効ソースにする
                     $ss = $ssCode;
                     # 3.1.7.3.3.2.行の最初文字を現文字にする
-                    $firstCodeCharInLine = $ch if $firstCodeCharInLine eq "";
+                    $firstCodeCharInLine = $ch if 0 == length $firstCodeCharInLine;
                     # 3.1.7.3.3.3.行の最後文字を現文字にする
                     $lastCodeCharInLine = $ch;
                 }
@@ -636,7 +636,7 @@ sub CountLines {
                 # 3.1.7.6.2.行タイプを有効行にする
                 $st = $stCode;
                 # 3.1.7.6.3.行の最初文字を現文字にする
-                $firstCodeCharInLine = $ch if $firstCodeCharInLine eq "";
+                $firstCodeCharInLine = $ch if 0 == length $firstCodeCharInLine;
                 # 3.1.7.6.4.行の最後文字を現文字にする
                 $lastCodeCharInLine = $ch;
             }
@@ -645,9 +645,9 @@ sub CountLines {
         elsif($ss == $ssMultiLineComment) {
             # 3.1.8.1.現文字を判断した上で違う処理をする
             # 3.1.8.2.星印の場合
-            if($ch eq "*") {
+            if($ch eq '*') {
                 # 3.1.8.2.1.次文字はスラッシュの場合
-                if($nextCh eq "/") {
+                if($nextCh eq '/') {
                     # 3.1.8.2.1.1.ソース解析状態を初期値にする
                     $ss = $ssEmpty;
                     # 3.1.8.2.1.2.次文字は分かったのでスキップする
@@ -691,7 +691,7 @@ sub CountLines {
             # 3.1.10.2.引用符の場合
             if($ch eq "'") {
                 # 3.1.10.2.1.前文字は\の場合（無視できる）
-                if($prevCh eq "\\") {
+                if($prevCh eq '\\') {
                     # 3.1.10.2.1.1.何もしない
                     # do nothing
                 }
@@ -725,10 +725,5 @@ sub CountLines {
     FinishLine($ss, $st, \$firstCodeCharInLine, \$lastCodeCharInLine, \$stepLines, \$codeLines, \$commentLines, \$emptyLines);
     # 3.3.計算結果をメンバー変数に保存する
     return($codeLines, $stepLines, $commentLines, $emptyLines, $codeLines + $commentLines + $emptyLines);
-#    $CodeLineCount = $codeLines;
-#    $StepCount = $stepLines;
-#    $CommentLineCount = $commentLines;
-#    $EmptyLineCount = $emptyLines;
-#    $LineCount = $codeLines + $commentLines + $emptyLines;
 }
 
