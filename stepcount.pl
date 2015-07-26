@@ -129,7 +129,7 @@ sub Execute {
             my($brief) = $src =~ /^\s*\*\s*\@brief\s*(.*)$/mg;  # ファイルヘッダ取得
             $brief =~ s/^.*利用する//;
             $brief =~ s/[のを].*$//;
-            
+
             # ステップ数, 有効行数, コメント行数, 空白行数, 全行数
             my ($CodeLineCount, $StepCount, $CommentLineCount, $EmptyLineCount, $LineCount) = CountLines($src);
 
@@ -232,7 +232,7 @@ AddEvent(window, 'load', function() {
     obody = new TableOperation('table_body');
     ofoot = new TableOperation('table_foot');
     doMarge();
-    
+
     for(var i = 0; i < ohead.rows; i++) {
         var ths = ohead.getTR(i).getElementsByTagName('th');
         for(var j in ths) {
@@ -288,7 +288,7 @@ JAVASCRIPT
     my $count = 0;
     foreach my $path(sort{$a cmp $b} keys %$step) {
         $count++;
-        
+
         my $data = $step->{$path};
 
         $fh->print($q->start_Tr({-align=>'right', -valign=>'top'}), "\n");
@@ -410,8 +410,8 @@ sub FinishLine {
         # 1.2.2.最初文字と最後文字によってステップ数カウントアップする
         $$stepLines++ if $$lastCodeCharInLine =~ /^[;\{\}:]$/ || $$firstCodeCharInLine eq "#";
         # 1.2.3.行の最初文字と行の最後文字をリセットする
-        $$firstCodeCharInLine = "";
-        $$lastCodeCharInLine = "";
+        $$firstCodeCharInLine = '';
+        $$lastCodeCharInLine = '';
     }
     # 1.3.コメントの場合
     elsif($st == $stComment) {
