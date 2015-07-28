@@ -1,0 +1,345 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html lang="ja">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=shift_jis">
+	<title>ソース解析</title>
+<script type="text/javascript"><!--
+
+var doc = new Array();
+var OpenClose = function (val) {
+	this.openString  = "(";
+	this.closeString = ")";
+	this.val = val;
+	this.matchString = "";
+	this.leftString  = "";
+	this.rightString = "";
+	this.leftIndex  = 0;
+	this.rightIndex = 0;
+	
+	this.clear = function () {
+		this.matchString = "";
+		this.leftString  = "";
+		this.rightString = "";
+		this.leftIndex  = 0;
+		this.rightIndex = 0;
+	}
+
+	this.exec = function (val) {
+		
+		if(typeof(val) != "undefined") this.val = val;
+		this.clear();
+		
+		for(this.leftIndex = 0; this.leftIndex < this.val.length; this.leftIndex++) {
+			if (this.val.substr(this.leftIndex, this.openString.length)==this.openString) {
+				this.rightIndex = this.leftIndex;
+				var node = 1;
+				while(node != 0) { // 括弧の終端探索
+					this.rightIndex++;
+					if(this.rightIndex > this.val.length) return false;
+					if(this.val.substr(this.rightIndex, this.openString.length ) == this.openString ) node++;
+					if(this.val.substr(this.rightIndex, this.closeString.length) == this.closeString) node--;
+				}
+				this.leftString  = this.val.substr(0, this.leftIndex);
+				this.matchString = this.val.substring(this.leftIndex + 1, this.rightIndex);
+				this.rightString = this.val.substr(this.rightIndex + 1);
+//	txtDebug.innerHTML += "left:"  + this.leftIndex   + "<BR>" + this.leftString  + "<p>";
+//	txtDebug.innerHTML += "match:" + this.matchString + "<p>";
+//	txtDebug.innerHTML += "right:" + this.rightIndex  + "<BR>" + this.rightString + "<p>";
+				return true;
+			}
+		}
+
+	}
+}
+
+function getText() {
+	var l = new String(txtSource.value);
+	l = l.replace(/\/\*(.*?)\*\//g, "");	// コメント
+	l = l.replace(/(\/\/.*?)$/g, "");		// コメント(C++)
+	l = l.replace(/^[\t ]*/gm, "\r");
+	l = l.replace(/[\t ]*$/gm, "\r");		// ブランク削除
+	l = l.replace(/[\t ]*\\$/gm, "\\\r");	// \crの前のブランクを消す
+
+	l = l.replace(/\r+/g, "\r");
+	l = l.replace(/\\\r/g, "");				// \cr を消す
+
+	//	 インクルードを消す
+	l = l.replace(/^#(include|undef)[^\r]*/gm, "");
+	//	#ifマクロの後ろに"{"をつける
+	l = l.replace(/^(#if.*)$/gm, "\r;\r$1\r{\r");
+	//	#endifマクロを"}"に変換
+	l = l.replace(/^(#endif.*$)/gm, "\r;\r}\r");
+	//	#elseマクロの前後に{}をつける
+	l = l.replace(/^#else/gm, "\r}\r;\r\#else\r{\r");
+
+	l = l.replace(/#define(.*)$/gm, "");
+
+	//	if/while/until/switch/for特化
+//	l = l.replace(/\r(if|while|until|switch|for|do)\s*($openclose)\s*([^\{](?:|if|while|until|switch|for|do)[^\}]*)/g,
+//		"\r$1$2{\r$3\r}\r");
+	//	変数宣言を消す
+	l = l.replace(/^\w+(?:\s+\w+)*(?:(?:\s*\*)?\s+(?:\*\s*)?)+[\w\[\]]+;/gm, "");
+	//	キャストを消す
+//	l = l.replace(/(?:\*\s*)?\([\w\s\*&]*\)\s*&/g, "");
+	//	変数宣言+初期化
+	l = l.replace(/^\w+\s+([\w\[\]]+\s*=\s*[\w\{\}]+\s*[\w\[\]]*\s*;)/gm, "\r$1");
+	l = l.replace(/(?:\*\s*)?\([\w\s\*&]*\)\s*([\(&a-zA-Z])/g, "$1");
+
+	l = l.replace(/^\}[\t ]*([^\r])/gm, "\r}\r$1");
+	l = l.replace(/[\r\n]/g, "");
+	// 行末文字で分割
+	var s = new String();
+	var ar = l.match(/[^\:\;\{\}]*[\:\;\{\}]/g);
+	for(i = 0; i < ar.length; i++) {
+		var n = new String(ar[i]);
+		n = n.replace(/^\s+/gm, "");
+		n = n.replace(/\s+$/gm, "");	// ブランク削除
+		n = n.replace(/^\;$/gm, "");	// 先頭;の削除
+		if(n.length != 0) s += n;
+	}
+	
+	var r = new OpenClose();
+	r.openString  = "{";
+	r.closeString = "}";
+
+	var i = 0;
+	while(r.exec(s)){
+		var func = new String(r.leftString);
+		var str  = new String(r.matchString);
+		s = new String(r.rightString);
+//	txtDebug.innerHTML += "<p>func="+func+"<p>";
+//	txtDebug.innerHTML += "<p>str="+str+"<p>";
+//	txtDebug.innerHTML += "<p>s="+s+"<p>";
+		var ar = func.match(/(\w+\s*)(\(.*\))/);
+		if(!ar) continue;
+		
+		doc[i] = new Object();
+		doc[i].symbol = ar[ar.length - 2];
+		doc[i].func = func;
+		doc[i].str  = str;
+		i++;
+	}
+	
+	selFunction.innerText = "";
+	
+	for(var i = 0; i < doc.length; i++) {
+		var e = document.createElement('option');
+		// value オプションにiを設定
+		e.setAttribute('value', i);
+		// OPTION タグ内のテキスト設定
+		e.appendChild(document.createTextNode(doc[i].symbol));
+		// SELECT Listへ登録
+		selFunction.appendChild(e);
+	}
+//	txtDebug.innerHTML += lines.join("<BR>");
+//alert(l);
+
+}
+function getFunction() {
+	var index = parseInt(selFunction.value);
+	if(isNaN(index)) return;
+	txtSS.innerHTML = "";
+	
+	var dat = nest(doc[index].str);
+	
+	var tbl     = document.createElement("table");
+	var tblBody = document.createElement("tbody");
+
+	var row = document.createElement("tr");
+
+	var cell = document.createElement("th");
+	var cellText = document.createTextNode(doc[index].func);
+	cell.appendChild(cellText);
+	cell.setAttribute('colspan', 2);
+	cell.align = 'left';
+	cell.style.borderWidth = '2px';
+	cell.style.borderStyle = 'solid';
+	cell.style.borderColor = 'black';
+	row.appendChild(cell);
+	
+	tblBody.appendChild(row);
+
+	viewLine(tblBody);
+
+	var row = document.createElement("tr");
+
+	var cell = document.createElement("td");
+	cell.appendChild(padView(dat, false));
+	cell.setAttribute('colspan', 2);
+	row.appendChild(cell);
+	tblBody.appendChild(row);
+	
+	viewLine(tblBody);
+
+	var row = document.createElement("tr");
+
+	var cell = document.createElement("th");
+	var cellText = document.createTextNode("END");
+	cell.appendChild(cellText);
+	cell.setAttribute('colspan', 2);
+	cell.align = 'left';
+	cell.style.borderWidth = '2px';
+	cell.style.borderStyle = 'solid';
+	cell.style.borderColor = 'black';
+	row.appendChild(cell);
+	
+	tblBody.appendChild(row);
+
+	tbl.appendChild(tblBody);
+	tbl.setAttribute('cellspacing', 0);
+	tbl.setAttribute('cellpadding', 0);
+	txtSS.appendChild(tbl);
+}
+
+// ネスト解析処理
+function nest(str) {
+	var datas = new Array();
+	while(1) {
+		var r = new OpenClose();
+		r.openString  = "{";
+		r.closeString = "}";
+		if(r.exec(str)) {
+			str = new String(r.rightString);
+			addMethod(r.leftString);
+			var dat = datas.pop();
+			dat.obj = nest(r.matchString);
+			datas.push(dat);
+		}
+		else {
+			addMethod(str);
+			break;
+		}
+	}
+	return datas;
+	
+	function addMethod(str) {
+		while(1) {
+			var r = new OpenClose();
+			r.openString  = "(";
+			r.closeString = ")";
+			if(r.exec(str)) {
+				addNomalMethod(r.leftString);
+				var dat = datas.pop();
+				dat.pram = r.matchString;
+				datas.push(dat);
+				str = new String(r.rightString);
+			}
+			else {
+				addNomalMethod(str);
+				return;
+			}
+		}
+		
+		function addNomalMethod(str) {
+			var ar = str.match(/[^\:\;\{\}]*[\:\;\{\}]/g);
+			var s = new String(RegExp.rightContext);
+			if(ar) {
+				for(var i = 0; i < ar.length; i++) {
+					addMain(new String(ar[i]));
+				}
+				addMain(s);
+				return;
+			}
+			addMain(str);
+			return;
+			
+			function addMain(str) {
+				if(str.match(/^[\;\:\{\}]?$/)) return;
+				var dat = new Object();
+				dat.obj = false;
+				dat.parm = false;
+				dat.method = str;
+				datas.push(dat);
+			}
+		}
+	}
+}
+
+
+function padView(dat, flag) {
+	var tbl     = document.createElement("table");
+	var tblBody = document.createElement("tbody");
+	for(var i = 0; i < dat.length; i++) {
+		
+		if(i != 0) viewLine(tblBody);
+		
+		var row = document.createElement("tr");
+
+		var cell = document.createElement("td");
+		var cellText = document.createTextNode("\u00a0");
+		cell.appendChild(cellText);
+		cell.width = 10;
+		cell.style.fontSize = '8pt';
+		if(i == 0 && flag) {
+			cell.style.borderTopWidth = '1px';
+			cell.style.borderTopStyle = 'solid';
+			cell.style.borderTopColor = 'black';
+		}
+		row.appendChild(cell);
+
+		var cell = document.createElement("td");
+		var cellText = document.createTextNode(dat[i].method);
+		cell.appendChild(cellText);
+		cell.align = 'left';
+		cell.vAlign = 'top';
+		cell.width = 100;
+		cell.style.borderWidth = '1px';
+		cell.style.borderStyle = 'solid';
+		cell.style.borderColor = 'black';
+		cell.style.fontSize = '9pt';
+		row.appendChild(cell);
+
+		if(dat[i].obj) {
+			var cell = document.createElement("td");
+			cell.appendChild(padView(dat[i].obj, true));
+			cell.align = 'left';
+			row.appendChild(cell);
+		}
+
+		tblBody.appendChild(row);
+		
+	}
+	tbl.appendChild(tblBody);
+	tbl.setAttribute('cellspacing', 0);
+	tbl.setAttribute('cellpadding', 0);
+	return tbl;
+}
+
+function viewLine(base) {
+	var row = document.createElement("tr");
+
+	var cell = document.createElement("td");
+	var cellText = document.createTextNode("\u00a0");
+	cell.appendChild(cellText);
+	cell.width = 10;
+	cell.style.fontSize = '8pt';
+	row.appendChild(cell);
+
+	var cell = document.createElement("td");
+	var cellText = document.createTextNode("\u00a0");
+	cell.appendChild(cellText);
+	cell.style.borderLeftWidth = '1px';
+	cell.style.borderLeftStyle = 'solid';
+	cell.style.borderLeftColor = 'black';
+	cell.style.fontSize = '8pt';
+	row.appendChild(cell);
+
+	base.appendChild(row);
+}
+
+
+//--></script>
+</head>
+<body>
+<textarea cols=80 rows=5 id="txtSource">
+</textarea><br>
+<input type="button" name="btnSubmit" value="解析" onClick="getText();"><br>
+<select id="selFunction"></select>
+<input type="button" name="btnSubmit" value="表示" onClick="getFunction();"><br>
+<br>
+<div align="left" id="txtSS">
+</div>
+<div align="left" id="txtDebug">
+</div>
+</body>
+</html>

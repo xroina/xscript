@@ -1,10 +1,13 @@
 #!/usr/bin/perl
 
+BEGIN {
+    unshift @INC, $0 =~ /^(.*?)[^\/]+$/;
+    unshift @INC, readlink($0) =~ /^(.*?)[^\/]+$/ if -l $0;
+}
+
 use strict;
 use warnings;
 use utf8;
-
-BEGIN { unshift @INC, ("$ENV{HOME}/bin", "$ENV{HOME}/workspace/develop/MACP/MFOP/test/MFOPTESTCM0010/script"); }
 
 use FileHandle;
 use Data::Dumper;

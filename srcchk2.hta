@@ -1,0 +1,594 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html lang="ja">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=shift_jis">
+	<title>ソース解析</title>
+<script type="text/javascript"><!--
+
+var doc = new Array();
+var OpenClose = function (val) {
+	this.openString  = "(";
+	this.closeString = ")";
+	this.val = val;
+	this.matchString = "";
+	this.leftString  = "";
+	this.rightString = "";
+	this.leftIndex  = 0;
+	this.rightIndex = 0;
+	
+	this.clear = function () {
+		this.matchString = "";
+		this.leftString  = "";
+		this.rightString = "";
+		this.leftIndex  = 0;
+		this.rightIndex = 0;
+	}
+
+	this.exec = function (val) {
+		
+		if(typeof(val) != "undefined") this.val = val;
+		this.clear();
+		
+		for(this.leftIndex = 0; this.leftIndex < this.val.length; this.leftIndex++) {
+			if (this.val.substr(this.leftIndex, this.openString.length)==this.openString) {
+				this.rightIndex = this.leftIndex;
+				var node = 1;
+				while(node != 0) { // 括弧の終端探索
+					this.rightIndex++;
+					if(this.rightIndex > this.val.length) return false;
+					if(this.val.substr(this.rightIndex, this.openString.length ) == this.openString ) node++;
+					if(this.val.substr(this.rightIndex, this.closeString.length) == this.closeString) node--;
+				}
+				this.leftString  = this.val.substr(0, this.leftIndex);
+				this.matchString = this.val.substring(this.leftIndex + 1, this.rightIndex);
+				this.rightString = this.val.substr(this.rightIndex + 1);
+//	dbg("left:"  + this.leftIndex);dbg(this.leftString);
+//	txtDebug.innerHTML += "match:" + this.matchString + "<p>";
+//	txtDebug.innerHTML += "right:" + this.rightIndex  + "<BR>" + this.rightString + "<p>";
+				return true;
+			}
+		}
+
+	}
+}
+
+function getText() {
+	var l = new String(document.getElementById("txtSource").value);
+	l = l.replace(/\/\*(.*?)\*\//g, "");	// コメント
+	l = l.replace(/(\/\/.*?)$/g, "");		// コメント(C++)
+	l = l.replace(/^[\t ]*/gm, "\r");
+	l = l.replace(/[\t ]*$/gm, "\r");		// ブランク削除
+	l = l.replace(/[\t ]*\\$/gm, "\\\r");	// \crの前のブランクを消す
+
+	l = l.replace(/\r+/g, "\r");
+	l = l.replace(/\\\r/g, "");				// \cr を消す
+
+	//	 インクルードを消す
+	l = l.replace(/^#(include|undef)[^\r]*/gm, "");
+	//	#ifマクロの後ろに"{"をつける
+	l = l.replace(/^(#if.*)$/gm, "\r;\r$1\r{\r");
+	//	#endifマクロを"}"に変換
+	l = l.replace(/^(#endif.*$)/gm, "\r;\r}\r");
+	//	#elseマクロの前後に{}をつける
+	l = l.replace(/^#else/gm, "\r}\r;\r\#else\r{\r");
+
+	l = l.replace(/#define(.*)$/gm, "");
+
+	//	if/while/until/switch/for特化
+//	l = l.replace(/\r(if|while|until|switch|for|do)\s*($openclose)\s*([^\{](?:|if|while|until|switch|for|do)[^\}]*)/g,
+//		"\r$1$2{\r$3\r}\r");
+	//	変数宣言を消す
+	l = l.replace(/^\w+(?:\s+\w+)*(?:(?:\s*\*)?\s+(?:\*\s*)?)+[\w\[\]]+;/gm, "");
+	//	キャストを消す
+//	l = l.replace(/(?:\*\s*)?\([\w\s\*&]*\)\s*&/g, "");
+	//	変数宣言+初期化
+	l = l.replace(/^\w+\s+([\w\[\]]+\s*=\s*[\w\{\}]+\s*[\w\[\]]*\s*;)/gm, "\r$1");
+	l = l.replace(/(?:\*\s*)?\([\w\s\*&]*\)\s*([\(&a-zA-Z])/g, "$1");
+
+	l = l.replace(/^\}[\t ]*([^\r])/gm, "\r}\r$1");
+	l = l.replace(/[\r\n]/g, "");
+	// 行末文字で分割
+	var s = new String();
+	var ar = l.match(/[^\:\;\{\}]*[\:\;\{\}]/g);
+	for(i = 0; i < ar.length; i++) {
+		var n = new String(ar[i]);
+		n = n.replace(/^\s+/gm, "");
+		n = n.replace(/\s+$/gm, "");	// ブランク削除
+		n = n.replace(/^\;$/gm, "");	// 先頭;の削除
+		if(n.length != 0) s += n;
+	}
+	
+	var r = new OpenClose();
+	r.openString  = "{";
+	r.closeString = "}";
+
+	var i = 0;
+	while(r.exec(s)){
+		var func = new String(r.leftString);
+		var str  = new String(r.matchString);
+		s = new String(r.rightString);
+//	txtDebug.innerHTML += "<p>func="+func+"<p>";
+//	txtDebug.innerHTML += "<p>str="+str+"<p>";
+//	txtDebug.innerHTML += "<p>s="+s+"<p>";
+		var ar = func.match(/(\w+\s*)(\(.*\))/);
+		if(!ar) continue;
+		
+		doc[i] = new Object();
+		doc[i].symbol = ar[ar.length - 2];
+		doc[i].func = func;
+		doc[i].str  = str;
+		i++;
+	}
+	
+	document.getElementById("selFunction").innerText = "";
+	
+	for(var i = 0; i < doc.length; i++) {
+		var e = document.createElement('option');
+		// value オプションにiを設定
+		e.setAttribute('value', i);
+		// OPTION タグ内のテキスト設定
+		e.appendChild(document.createTextNode(doc[i].symbol));
+		// SELECT Listへ登録
+		document.getElementById("selFunction").appendChild(e);
+	}
+//	txtDebug.innerHTML += lines.join("<BR>");
+//alert(l);
+
+}
+function dbg(str) {
+	document.getElementById("txtDebug").innerHTML += str + '<br>';
+}
+function getFunction() {
+	var index = parseInt(document.getElementById("selFunction").value);
+	if(isNaN(index)) return;
+	
+	var dat = nest(doc[index].str);
+
+	var win = window.open('', '_blank', 'directories=no,location=no,menubar=no,status=no,toolbar=no,scrollbars=yes');
+//	win.navigator.language = 'ja';
+	win.document.title = doc[index].symbol + ' 詳細設計書(PAD)';
+	
+	var tbl     = win.document.createElement("TABLE");
+	var tblBody = win.document.createElement("TBODY");
+
+	var row = win.document.createElement("TR");
+	for(var i = 0; i < 100; i++) {
+		var cell = win.document.createElement("TD");
+		var cellText = win.document.createTextNode(i);//"\u00a0");
+		cell.appendChild(cellText);
+		cell.width = 10;
+		cell.style.fontSize = '8pt';
+		row.appendChild(cell);
+	}
+	tblBody.appendChild(row);
+
+	var row = win.document.createElement("TR");
+
+	var cell = win.document.createElement("TH");
+	var cellText = win.document.createTextNode(doc[index].func);
+	cell.appendChild(cellText);
+	cell.colSpan = 20;
+	cell.align = 'left';
+	cell.width = 200;
+	cell.style.borderWidth = '2px';
+	cell.style.borderStyle = 'solid';
+	cell.style.borderColor = 'black';
+	row.appendChild(cell);
+	
+	row.style.borderStyle = 'none'
+	tblBody.appendChild(row);
+
+	viewLine(tblBody, 0);
+
+	padView(dat, false, 0);
+	
+	viewLine(tblBody, 0);
+
+	var row = win.document.createElement("TR");
+
+	var cell = win.document.createElement("TH");
+	var cellText = win.document.createTextNode('End of ' + doc[index].symbol);
+	cell.appendChild(cellText);
+	cell.colSpan = 20;
+	cell.align = 'left';
+	cell.width = 200;
+	cell.style.borderWidth = '2px';
+	cell.style.borderStyle = 'solid';
+	cell.style.borderColor = 'black';
+	row.appendChild(cell);
+	
+	row.style.borderStyle = 'none'
+	tblBody.appendChild(row);
+
+	tbl.appendChild(tblBody);
+	tbl.setAttribute('CELLSPACING', 0);
+	tbl.setAttribute('CELLPADDING', 0);
+	win.document.body.appendChild(tbl);
+
+	// ネスト解析処理
+	function nest(str) {
+		var datas = new Array();
+		while(1) {
+			var r = new OpenClose();
+			r.openString  = "{";
+			r.closeString = "}";
+			if(r.exec(str)) {
+				str = new String(r.rightString);
+				addMethod(r.leftString);
+				var dat = datas.pop();
+				if(dat != null) {
+					dat.obj = nest(r.matchString);
+					datas.push(dat);
+				}
+			}
+			else {
+				addMethod(str);
+				break;
+			}
+		}
+		return datas;
+		
+		function addMethod(str) {
+			while(1) {
+				var r = new OpenClose();
+				r.openString  = "(";
+				r.closeString = ")";
+				if(r.exec(str)) {
+					addNomalMethod(r.leftString);
+					var dat = datas.pop();
+					if(dat != null) {
+						dat.pram = new String(r.matchString);
+						datas.push(dat);
+					}
+					str = new String(r.rightString);
+				}
+				else {
+					addNomalMethod(str);
+					return;
+				}
+			}
+			
+			function addNomalMethod(str) {
+				var ar = str.match(/[^\:\;\{\}]*[\:\;\{\}]/g);
+				var s = new String(RegExp.rightContext);
+				if(ar) {
+					for(var i = 0; i < ar.length; i++) {
+						addMain(new String(ar[i]));
+					}
+					addMain(s);
+					return;
+				}
+				addMain(str);
+				return;
+				
+				function addMain(str) {
+					if(str.match(/^[\;\:\{\}]?$/)) return;
+					var dat = new Object();
+					dat.obj = false;
+					dat.parm = false;
+					dat.method = str;
+					datas.push(dat);
+				}
+			}
+		}
+	}
+
+
+	function padView(dat, flag, cel, row) {
+		for(var i = 0; i < dat.length; i++) {
+			dbg(dat[i].method + ":" + dat[i].pram);
+			
+			if(i != 0) viewLine(tblBody, cel);
+			
+			if(!flag) row = win.document.createElement("TR");
+			else {
+				if(row.rowSpan) row.rowSpan += 2;
+				else row.rowSpan = 2;
+			}
+			
+			addLeft(row, i==0 ? 0 : cel, (i == 0 && flag))
+			// 本体
+			var cell = win.document.createElement("TD");
+			var s = new String(dat[i].method);
+			if(dat[i].pram) s += '(' + dat[i].pram + ')';
+			var cellText = win.document.createTextNode(i+":"+s);
+			cell.appendChild(cellText);
+			cell.align = 'left';
+			cell.vAlign = 'top';
+			cell.width = 100;
+			cell.colSpan = 10;
+			cell.style.borderWidth = '1px';
+			cell.style.borderStyle = 'solid';
+			cell.style.borderColor = 'black';
+			cell.style.fontSize = '9pt';
+			row.appendChild(cell);
+
+			if(dat[i].obj) padView(dat[i].obj, true, cel+1, row);
+//			dbg("row=" + row.rowSpan + " : cell="+cel);
+			
+			row.style.borderStyle = 'none'
+			tblBody.appendChild(row);
+			
+			flag = false;
+		}
+	}
+
+	function viewLine(base, cel) {
+		var row = win.document.createElement("TR");
+		
+		addLeft(row, cel);
+		
+		var cell = win.document.createElement("td");
+		var cellText = win.document.createTextNode("\u00a0");
+		cell.appendChild(cellText);
+		cell.style.borderLeftWidth = '1px';
+		cell.style.borderLeftStyle = 'solid';
+		cell.style.borderLeftColor = 'black';
+		cell.style.fontSize = '8pt';
+		row.appendChild(cell);
+
+		row.style.borderStyle = 'none'
+		base.appendChild(row);
+	}
+	
+	function addLeft(row, cel, flag) {
+		var cell = win.document.createElement("TD");
+		var cellText = win.document.createTextNode(cel);//"\u00a0");
+		cell.appendChild(cellText);
+		cell.width = cel*(100 + 10)+1;
+		cell.colSpan = cel*(10+1)+1;
+		cell.style.fontSize = '8pt';
+		if(flag) {	// 上位からの線を引く
+			cell.style.borderTopWidth = '1px';
+			cell.style.borderTopStyle = 'solid';
+			cell.style.borderTopColor = 'black';
+		}
+		row.appendChild(cell);
+	}
+}
+
+
+//--></script>
+</head>
+<body>
+<textarea cols=80 rows=5 id="txtSource">
+void luc0_blcdchg(
+               UCHAR  mod_id ,         /* ｺｰﾙ元制御ID   700V10C000616*/
+               UCHAR  fact_id          /* ｺｰﾙ元制御内ID 700V10C000616*/
+                 )
+{                                      /*                            */
+    UCHAR       shlt_flg;              /* 退避情報ﾌﾗｸﾞ               */
+    USHORT      lun;                   /*         600V00C000126 r008 */
+    UCHAR       oth_ctl;               /* 他ｺﾝﾄﾛｰﾗ番号          r008 */
+    UCHAR       trc_msg[3];            /* LU切り替えﾄﾚｰｽﾒｯｾｰｼﾞ  r002 */
+    USHORT      lu_count;              /* 定義LUﾙｰﾌﾟｶｳﾝﾀ        r307 */
+    UCHAR       own_inf;               /* 自CTL、自ｺｱ情報ﾌﾗｸﾞ        */
+                                       /*                  DF800対応 */
+
+#if defined (DF_HIGH)
+                                       /*              800V30C007801 */
+    char        trc_ret;               /* ｺﾝﾄﾛｰﾗ間通信ﾘﾀｰﾝ値         */
+#endif                                 /*              800V30C007801 */
+                                       /*                            */
+    LUC_LMSET;                         /* 切り替え情報をLMに設定     */
+    COM4_CP2_CL1(&inmt_calc.luc_chgadr->shlt_flg,&shlt_flg);
+                                       /*              800V31C023504 */
+                                       /* 退避情報ﾌﾗｸﾞ取得           */
+#ifdef TRACEON
+    luc0_blstrc(shlt_flg,mod_id,fact_id);
+                                       /* 閉塞LU切り替え開始ﾄﾚｰｽ     */
+                                       /*              700V10C000616 */
+#endif
+    if(shlt_flg == C_OFF){             /* 退避情報ﾌﾗｸﾞはOFF?         */
+        COM4_CP2_LCN(&luc0_luinf.lu_ctl[0],
+                     &inmt_calc.luc_chgadr->lu_ctl[0],
+                     C_CONST_LU_SYSTEMMAX);
+                                       /*              800V31C023504 */
+                                       /* LU担当ｺﾝﾄﾛｰﾗ情報退避       */
+                                       /*                       r202 */
+        COM4_CP2_LC4(&luc0_luinf.dir_ctl[0],
+                     &inmt_calc.luc_chgadr->dir_ctl[0]);
+                                       /*              800V31C023504 */
+                                       /* Dir担当ｺﾝﾄﾛｰﾗ情報退避      */
+    }                                  /*                  DF800対応 */
+    COM4_GET_DIR((inmt_ctltbl.ctlno^OTH_CTL),luc0_luinf.chg_dir);
+                                       /* LU切替対象Dir設定     r008 */
+    if(rcfr_systbl.ludef != NO_LUN){   /* LU定義あり            r008 */
+        if(luc0_luinf.chg_dir == C_LUC_DIR0){
+                                       /* DIR0切り替え          r008 */
+            luc0_luinf.chg_dir = C_LUC_NODIR;
+                                       /* 切替対象DIRｸﾘｱ        r008 */
+            for(lun=0,lu_count=0;lu_count<rcfr_systbl.ludef;lun++){
+                                       /* LUN定義数分           r307 */
+                if(rcfr_lusttbl.lust[lun] != C_RCF_LU_UNDEF){
+                                       /* LU定義済み?           r307 */
+                    lu_count++;        /* LU定義ｶｳﾝﾄｱｯﾌﾟ        r307 */
+                    if(luc0_luinf.lu_dir[lun] == C_LUC_DIR0){
+                                       /* LU管理Dir情報にDIR0?  r008 */
+                        luc0_luinf.chg_dir = C_LUC_DIR0;
+                                       /* 切替対象DIRにDIR0     r008 */
+                        break;         /*                       r008 */
+                    }                  /*                       r008 */
+                }                      /*                       r307 */
+            }                          /*                       r307 */
+        }                              /*                       r008 */
+        else if(luc0_luinf.chg_dir == C_LUC_DIR1){
+                                       /* DIR1切り替え          r008 */
+            luc0_luinf.chg_dir = C_LUC_NODIR;
+                                       /* 切替対象DIRｸﾘｱ        r008 */
+            for(lun=0,lu_count=0;lu_count<rcfr_systbl.ludef;lun++){
+                                       /* LUN定義数分           r307 */
+                if(rcfr_lusttbl.lust[lun] != C_RCF_LU_UNDEF){
+                                       /* LU定義済み?           r307 */
+                    lu_count++;        /* LU定義ｶｳﾝﾄｱｯﾌﾟ        r307 */
+                    if(luc0_luinf.lu_dir[lun] == C_LUC_DIR1){
+                                       /* LU管理Dir情報にDIR1?  r008 */
+                        luc0_luinf.chg_dir = C_LUC_DIR1;
+                                       /* 切替対象DIRにDIR1     r008 */
+                        break;         /*                       r008 */
+                    }                  /*                       r008 */
+                }                      /*                       r307 */
+            }                          /*                       r307 */
+        }                              /*                       r008 */
+        else if(luc0_luinf.chg_dir == C_LUC_2DIR){
+                                       /* DIR0,1切り替え        r008 */
+            luc0_luinf.chg_dir = inmt_ctltbl.ctlno;
+                                       /* 切替対象DIRに自ｺﾝﾄﾛｰﾗ番号  */
+                                       /*                       r008 */
+            oth_ctl = (UCHAR)(inmt_ctltbl.ctlno^OTH_CTL);
+                                       /* 他ｺﾝﾄﾛｰﾗ番号          r008 */
+            for(lun=0,lu_count=0;lu_count<rcfr_systbl.ludef;lun++){
+                                       /* LUN定義数分           r307 */
+                if(rcfr_lusttbl.lust[lun] != C_RCF_LU_UNDEF){
+                                       /* LU定義済み?           r307 */
+                    lu_count++;        /* LU定義ｶｳﾝﾄｱｯﾌﾟ        r307 */
+                    if(luc0_luinf.lu_dir[lun] == oth_ctl){
+                                       /* LU管理Dir情報に他ｺﾝﾄﾛｰﾗ?   */
+                                       /*                       r008 */
+                        luc0_luinf.chg_dir = C_LUC_2DIR;
+                                       /* 切替対象DIRにDIR0     r008 */
+                        break;         /*                       r008 */
+                    }                  /*                       r008 */
+                }                      /*                       r307 */
+            }                          /*                       r307 */
+        }                              /*                       r008 */
+        else                           /* 700V10C000616 QAC対策      */
+        {                              /* 上記以外の場合             */
+            ;                          /* NOP                        */
+        }                              /*              700V10C000616 */
+        
+        if(luc0_luinf.chg_dir != C_LUC_NODIR){
+                                       /* LU切替有り?           r008 */
+            LUC_OWN_INF(own_inf);      /* 自CTL、自ｺｱ情報取得        */
+                                       /*                  DF800対応 */
+            COM4_CP2_LC1(&own_inf,
+                         &inmt_calc.luc_mngtbladr->exeinf);
+                                       /*              800V31C023504 */
+                                       /* LU切替関数情報設定    r008 */
+                                       /*                  DF800対応 */
+            hscc_moveque_start(C_HS_CMDMV_MODE_CTL,
+                               (UCHAR)(inmt_ctltbl.ctlno^OTH_CTL),
+                               0,
+                               0);
+                                       /* ｺﾏﾝﾄﾞ以降開始    DF800対応 */
+                                       /*              800V10C079001 */
+            if(luc0_luinf.chg_dir == C_LUC_2DIR){
+                                       /*                       r008 */
+                luc0_luinf.dir_ctl[0] = inmt_ctltbl.ctlno;
+                                       /* Dir担当CTL情報設定(ﾛｰｶﾙ)   */
+                                       /*                       r008 */
+                luc0_luinf.dir_ctl[1] = inmt_ctltbl.ctlno;
+                                       /* Dir担当CTL情報設定(ﾛｰｶﾙ)   */
+                                       /*                       r008 */
+                for(lun=0,lu_count=0;lu_count<rcfr_systbl.ludef;lun++){
+                                       /* LUN定義数分           r307 */
+                    if(rcfr_lusttbl.lust[lun] != C_RCF_LU_UNDEF){
+                                       /* LU定義済み?           r307 */
+                        lu_count++;    /* LU定義ｶｳﾝﾄｱｯﾌﾟ        r307 */
+                        luc0_luinf.lu_ctl[lun] = inmt_ctltbl.ctlno;
+                                       /* LU担当CTL情報設定(ﾛｰｶﾙ)    */
+                    }                  /*                       r307 */
+                }                      /*                       r307 */
+            }                          /*                       r008 */
+            else{                      /*                       r008 */
+                luc0_luinf.dir_ctl[luc0_luinf.chg_dir]
+                                   = inmt_ctltbl.ctlno;
+                                       /* Dir担当CTL情報設定(ﾛｰｶﾙ)   */
+                                       /*                       r008 */
+                for(lun=0,lu_count=0;lu_count<rcfr_systbl.ludef;lun++){
+                                       /* LUN定義数分           r307 */
+                    if(rcfr_lusttbl.lust[lun] != C_RCF_LU_UNDEF){
+                                       /* LU定義済み?           r307 */
+                        lu_count++;    /* LU定義ｶｳﾝﾄｱｯﾌﾟ        r307 */
+                        if(luc0_luinf.lu_dir[lun]
+                           == luc0_luinf.chg_dir){
+                                       /* 切り替え対象のLUN?    r008 */
+                            luc0_luinf.lu_ctl[lun] = inmt_ctltbl.ctlno;
+                                       /* LU担当CTL情報設定(ﾛｰｶﾙ)    */
+                        }              /*                       r008 */
+                    }                  /*                       r307 */
+                }                      /*                       r307 */
+            }                          /*                       r008 */
+            COM4_CP2_LC4(&luc0_luinf.dir_ctl[0],
+                         &inmt_calc.luc_mngtbladr->dir_ctl[0]);
+                                       /*              800V31C023504 */
+                                       /* Dir担当CTL情報設定    r008 */
+                                       /*                  DF800対応 */
+            COM4_CP2_LCN(&luc0_luinf.lu_ctl[0],
+            &inmt_calc.luc_mngtbladr->lu_ctl[0],C_CONST_LU_SYSTEMMAX);
+                                       /*              800V31C023504 */
+                                       /* LU担当CTL情報設定     r008 */
+                                       /*                       r202 */
+#if defined (DF_HIGH)
+                                       /*              800V30C007801 */
+            LUC_CTL_TRNS(C_PRO_LUC_RMRNRQ,0,C_PRO_LUC_NOTEXE,0,
+                         C_PRO_SEND_ALL_CORE,trc_ret);
+                                       /* ﾛｰｶﾙﾒﾓﾘ更新要求            */
+                                       /*              800V30C007801 */
+            if(trc_ret != C_OK)
+            {
+            }                          /* remark対応                 */
+                                       /*              800V30C007801 */
+#endif                                 /*              800V30C007801 */
+
+            luc0_luinf.cache_inf = C_ON;
+                                       /* ｷｬｯｼｭ切り替え実行情報ON    */
+            rchs_luchg(C_RCH_MD_LC_LUCHG);
+                                       /* ｷｬｯｼｭ切り替え処理          */
+                                       /*                  削除 r004 */
+            scp0_dirchg_rep(luc0_luinf.chg_dir);
+                                       /* Dir切り替え終了報告        */
+                                       /*                  DF800対応 */
+                                       /* 800V10C039908              */
+            /* DF800対応                                             */
+            memset(&luc0_dirctmpbmp,0,sizeof(luc0_dirctmpbmp));
+            
+            /**** 700V30C037436 **************************************/
+            rcfa_tcabmpclr_luc(C_RCF_512DEL_DIR,
+                               C_ON,
+                               C_CONST_MP0,
+                               luc0_luinf.chg_dir,
+                               &luc0_dirctmpbmp[0]);
+                                       /* 構成制御TCA差分ﾋﾞｯﾄﾏｯﾌﾟｸﾘｱ */
+                                       /* 関数コール                 */
+                                       /* 通信発行ﾌﾗｸﾞ：ON           */
+            /************************************** 700V30C037436 ****/
+            
+            /**** 700V35C007003 **************************************/
+            rvmm_dirchg_init(C_RVM_LASTSBCHG_DIRCHG,
+                             &luc0_dirctmpbmp[0]);
+                                       /* RVR管理・関数コール        */
+            /************************************** 700V35C007003 ****/
+                                       /*              800V10C039908 */
+
+            hscc_moveque_end();        /* ｺﾏﾝﾄﾞ移行完了    DF800対応 */
+
+            COM4_CP2_VC1(C_LUC_NOCTL,
+                         &inmt_calc.luc_mngtbladr->exeinf);
+                                       /*              800V31C023504 */
+                                       /* LU切り替え関数情報設定     */
+            luc0_luinf.cache_inf = C_OFF;
+                                       /* ｷｬｯｼｭ切り替え実行情報OFF   */
+        }                              /*                       r008 */
+    }                                  /*                       r008 */
+    trc_msg[0] = 'B';                  /* LU切り替えﾄﾚｰｽﾒｯｾｰｼﾞ  r002 */
+    trc_msg[1] = 'L';                  /* LU切り替えﾄﾚｰｽﾒｯｾｰｼﾞ  r002 */
+    trc_msg[2] = 'C';                  /* LU切り替えﾄﾚｰｽﾒｯｾｰｼﾞ  r002 */
+    luc0_dirfnc_trc(C_RCH_MD_LC_LUCHG, trc_msg, mod_id, fact_id);
+                                       /* LU切替ﾄﾚｰｽ   700V10C000616 */
+#ifdef TRACEON
+    luc0_bletrc();                     /* 閉塞LU切り替え終了ﾄﾚｰｽ     */
+#endif
+}                                      /*                            */
+
+</textarea><br>
+<input type="button" name="btnSubmit" value="解析" onClick="getText();"><br>
+<select id="selFunction"></select>
+<input type="button" name="btnSubmit" value="表示" onClick="getFunction();"><br>
+<br>
+<div align="left" id="txtSS">
+</div>
+<div align="left" id="txtDebug">
+</div>
+</body>
+</html>
