@@ -1,0 +1,94 @@
+# ● スタブクリエーター
+#
+#   基盤などのライブラリにあるメソッドをフックし、想定通りの応答を返却するために利用します。
+#   異常系などでエラー応答が必要な時に利用します。
+#
+# ● 準備
+#
+#   スクリプトをLinux環境にインストールします。端末から以下のコマンドを実施してください
+#
+#       $ mkdir ~/bin/
+#       $ ln -s ~/workspace/develop/MACP/MFOP/test/MFOPTESTCM0010/script/CreateStub.pl ~/bin/CreateStub
+#       $ chmod 755 ~/bin/CreateStub
+#
+# ● 使い方
+#
+# ・スタブ作成
+#
+#   テストプロジェクトのsrcフォルダに、stub.txtというファイルを作成します。
+#   stub.txtに対象の関数名とフックした時に応答させたいコードなどを記載します
+#
+#   例えば、Entityテーブル管理のInstanceメソッドでNULLを返すようにするにはこんな感じです。
+#
+#       IIR_CC_EntityTblMgr::Instance   return NULL;    # Entityテーブル管理のInstanceメソッドでNULLを返す
+#
+#       # <- '#' 以降はコメント扱いになり無視されます
+#
+#   stub.txtを作成したら、端末でstub.txtを作成したパスへ移動し、
+#
+#       $ CreateStub 
+#
+#   とすると、フックコード(CC_STUB.h,CC_STUB.cpp)が作成されますので、テストのsrcに配置してください。
+#
+#   ・ eclipse での実行方法
+#
+#       「実行(R)」→「外部ツール(E)」→「外部ツールの構成(E)」をクリックします。
+#
+#       「外部ツール構成ダイアログ」が開くので「プログラム」を右クリックし、「新規(W)」を選択します。
+#       外部プログラムの構成が表示されるので「メイン」タブを選択し、
+#       「名前(N)」に"CreateStub"
+#       「ロケーション(L)」に"/home/TP-IIR/bin/CreateStub"
+#       「作業ディレクトリ(D)」に"${workspace_loc:/テストプロジェクト名/src}" （「ワークスペースの参照(K)」ボタンから選択することもできます)
+#       を設定し、次に、「ビルド」タブへ移動し、「起動前にビルド(B)」チェックを外します。
+#
+#       「適用(Y)」を押して「実行」を押すことで、実行されます。
+#
+#       次回からは、「実行(R)」→「外部ツール(E)」で表示されるメニューに CreateStub が追加されているので、これをクリックすると、実行されます。
+#
+# ・テストコードでの利用方法
+#
+#   スタブでは、
+#
+#       HOOK::IIR_CC_EntityTblMgr_Instance
+#
+#   みたいなクラスインスタンスが作成されるのでテストコード上で以下の設定をしてください。
+#
+#       ～ .execute  = true; // <= フック処理を有効にします
+#       ～ .count    = 0;    // <= フック呼び出し回数をリセットします
+#       ～ .ignition = 1;    // <= 何回目のコールで異常応答するかを定義します
+#       ～ .clear();         // <= フック処理の無効化
+#       HOOK::AB_STUB::debug = true; // <=対象の関数が呼ばれるたびにメッセージが表示されるようになります(正直ウザい)
+#
+#   なお、templateや、inlineはフックできません。↓みたいなやつ
+#
+#       template <class Type>
+#       int32_t IIR_CC_EntityTable::Select(const char*,int32_t,int32_t,int32_t,Type**);
+#
+#   このようなメソッドをフックしたい場合は、そのメソッドが呼んでいる先のtemplate/inlineではない
+#   メソッドでフックをかける必要があります
+#
+# ・ 実際の使用例
+#
+#   TEST (IIR_CC_EntityTblMgr_Instance, NULL) {
+#
+#       HOOK::IIR_CC_EntityTblMgr_Instance.execute = true;  // フック有効
+#       HOOK::IIR_CC_EntityTblMgr_Instance.count = 0;       // カウントクリア
+#       HOOK::IIR_CC_EntityTblMgr_Instance.ignition = 1;    // 1回目の呼び出しでNULL応答
+#
+#       try {
+#           CC_RadarDistTransBiz mng("EventName", EventData);   // <= テスト対象メソッド
+#
+#           HOOK::IIR_CC_EntityTblMgr_Instance.clear(); // FAIL()するとテストコードが中断されるので先にクリアしてます
+#
+#           FAIL();     // 異常時は例外をthrowする仕様なのでここに来てしまったらテストはNG。
+#
+#       } catch(const string& e) {
+#
+#           SUCCEED();  // 異常時は例外をthrowするので、それがcatchできるのが正しい動き。
+#
+#           EXPECT_TRUE(e.find("IIR_CC_EntityTblMgr::Instance Fail") != e.npos);    // throw内容が正しいかチェック
+#
+#           HOOK::IIR_CC_EntityTblMgr_Instance.clear(); // クリア
+#       }
+#
+#   }

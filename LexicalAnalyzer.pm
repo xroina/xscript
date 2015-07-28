@@ -94,7 +94,7 @@ sub delete {
     if('ARRAY' eq ref $tuple) {
         $this->delete($_) foreach @$tuple;
         return;
-    } elsif('Token' eq $tuple) {
+    } elsif('Token' eq ref $tuple) {
     	$tuple->delete();
     	return;
     }
@@ -697,10 +697,10 @@ sub parse {
     }
     # identの処理
     elsif(/^ident_/) {
-        # identの次が::|->|.の場合はオペレータは周りのidentを引き連れて大きなindentにする。
-        while($next->value =~ /^op_(::|->|\.)$/) {
+        # identの次が::の場合はオペレータは周りのidentを引き連れて大きなindentにする。
+        while($next->value eq 'op_::') {
             last if $next->eof;
-            $t->text($t->text . $1);
+            $t->text($t->text . '::');
             $next->delete;
             $next = $next->next('!(space|comment).*');
             if($next->kind eq 'ident') {
@@ -724,7 +724,9 @@ sub parse {
             $t->kind('define');
         }
         # identが２つ続いていたら、最初のidentは宣言だ。
-        $prev->kind('define') if $prev->kind() eq 'ident';
+        $prev->kind('define') if $prev->kind eq 'ident';
+        
+        $t->kind('valiable') if $prev->kind eq 'define' && $next->value eq 'op_[';
 
         if($t->kind eq 'ident') {
             # カッコの始まりならメソッドだと思われます。
@@ -749,29 +751,45 @@ sub parse {
         }
         $_ = $t->value;
     }
+    # 宣言の前がidentならそのidentは宣言だ
     elsif(/^define_/ && $prev->kind eq 'ident') {
         $prev->kind('define');
     }
     # ポインタと参照
     elsif(/^op_[&\*]$/) {
-        if($prev->kind() eq 'ident') {
+        if($prev->kind eq 'ident') {
             # 直前がidentで、その前が宣言か文の終わりっぽいものなら、直前のidentは宣言だ
-            if($pprev->value() =~ /^(define_.*|op_[\{\};,]|)$/){
+            if($pprev->value =~ /^(define_.*|op_[\{\};:,]|)$/){
+                $prev->kind('define');
+            }
+            if($pprev->value =~ /^(op_[\(\{;:,]|keyword_.*)$/ && $next->kind eq 'ident'){
                 $prev->kind('define');
             }
             # 直前がidentで、その前が演算子なら直前のidentは変数だ
-            elsif($pprev->value() =~ /^(op_[\(\)\+\-\*\/%\|&])$/) {
+            elsif($pprev->value =~ /^(op_[\(\)\+\-\*\/%\|&])$/) {
                 $prev->kind('valiable');
             }
         }
         # 直前が宣言なら、ポインタも宣言にしちゃえ
-        $t->kind('define') if $prev->kind() eq 'define';
+        $t->kind('define') if $prev->kind eq 'define';
+    }
+    # アロー演算子の前がidentならそれは変数だ
+    elsif(/^op_(->|\.)$/) {
+        if($prev->kind() eq 'ident') {
+            $prev->kind('valiable');
+        }
     }
     # PH3==========================================================
     if($prev->kind eq 'valiable' && $pprev->kind eq 'define' && 'ARRAY' eq ref $t->{class}) {
 #print "+++++ ". $prev->value. "\n";
-        $t->{class}->[0]->{valiable} = [] unless $t->{class}->[0]->{valiable};
-        push @{$t->{class}->[0]->{valiable}}, $prev;
+        my $p;
+        for($p = $pprev; !$p->bof; $p = $p->prev('!(space|comment).*')) {
+            last unless $p->kind eq 'define';
+        }
+        unless($p->value eq 'keyword_static') {
+            $t->{class}->[0]->{valiable} = [] unless $t->{class}->[0]->{valiable};
+            push @{$t->{class}->[0]->{valiable}}, $prev;
+        }
     }
 
     return $t;

@@ -104,10 +104,9 @@ Execute(@{$param->{path}});
 CreateHTML();
 
 ($progpath) = readlink($0) =~ /^(.*?)([^\/]+)$/ if -l $0;
-foreach(@{$param->{javascript}}) {
-    next unless -e "$progpath/$_";
-    unlink $_ if -e $_;
-    symlink "$progpath/$_", $_;
+if(-d "$progpath/js") {
+    unlink 'js' if -d 'js';
+    symlink "$progpath/js", 'js';
 }
 
 exit;
@@ -201,7 +200,7 @@ tfoot {
 }
 CSS
             ),
-            (map{ $q->script({-type=>'text/javascript', -src=>$_}, "") } @{$param->{javascript}}),
+            (map{ $q->script({-type=>'text/javascript', -src=>"js/$_"}, "") } @{$param->{javascript}}),
             $q->script({-langage=>"text/javascript"}, "<!--\n", <<'JAVASCRIPT'
 
 var ohead;

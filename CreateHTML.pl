@@ -98,10 +98,9 @@ foreach(sort{
 CreateHtml($lex);
 
 ($progpath) = readlink($0) =~ /^(.*?)([^\/]+)$/ if -l $0;
-foreach(@{$param->{javascript}}) {
-    next unless -e "$progpath/$_";
-    unlink $_ if -e $_;
-    symlink "$progpath/$_", $_;
+if(-d "$progpath/js") {
+    unlink 'js' if -d 'js';
+    symlink "$progpath/js", 'js';
 }
 
 system "firefox $param->{output} > /dev/null 2>&1 &" if $param->{firefox};
@@ -235,7 +234,7 @@ textarea {
 .fukidashi {
    position      : absolute;
    top           : 0;
-   left          : 120ex;
+   left          : 80ex;
    display       : table-cell;
    vertical-align: bottom;
    padding-left  : 15px;
@@ -244,7 +243,7 @@ textarea {
 }
 CSS
 ),
-            (map{ $q->script({-type=>'text/javascript', -src=>$_}, "") } @{$param->{javascript}}),
+            (map{ $q->script({-type=>'text/javascript', -src=>"js/$_"}, "") } @{$param->{javascript}}),
             $q->script({-langage=>"text/javascript"}, "<!--\n", <<'JAVASCRIPT'
 
 var ie = GetBrowser();
