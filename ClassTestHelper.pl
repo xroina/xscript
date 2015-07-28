@@ -19,7 +19,7 @@ use LexicalAnalyzer;
 binmode STDOUT, ":utf8";
 
 # コマンド引数の取得
-my $param = {path=>[]};
+my $param = {path=>[], javascript =>['Utility.js', 'TableOperation.js']};
 foreach(@ARGV) {
     if(/^-debug$/) { $param->{debug}   = 1; }
     elsif(/^-o$/)  { $param->{outflag} = 1; }
@@ -79,6 +79,19 @@ foreach(sort{
 }
 
 for(my $t = $lex->{begin}; !$t->eof; $t = parse($t)) {}
+
+# クラス変数のコメントを取得する
+foreach my $ns(grep{/^(namespace|class)_/} keys %$test) {
+    my $class = $test->{$ns};
+	if($class && 'ARRAY' eq ref $class->{valiable}) {
+        foreach my $t(@{$class->{valiable}}) {
+			my $tt = $t->next('(space|comment)_.*')->next('!(space|comment)_.*');
+			my $comment = getComment($t, $tt);
+			$comment =~ s/^\s*(.*?)\s*$/$1/m;
+			$t->{comment} = $comment;
+		}
+	}
+}
 
 CreateHtml();
 
@@ -305,7 +318,7 @@ sub getComment {
         my $text = $t->text;
         $text =~ s/^\/[\*\/]//;
         $text =~ s/\*\/$//;
-        $text =~ s/\*//g;
+        $text =~ s/^\s*\*//gm;
         $text =~ s/　/ /g;
         $text =~ s/[\s]+/ /g;
         $text =~ s/^\s*(.*?)\s*$/$1/;
@@ -338,22 +351,41 @@ sub CreateHtml {
                 -content    =>'text/html; charset=UTF-8'}),
             $q->meta({-charset=>'UTF-8'}),
             $q->style({-type=>'text/css'}, "\n", <<"CSS"
+
 body {
     font-size : 9pt;
 }
 h1 {
     font-size : 10pt;
 }
+table {
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid gray;
+    white-space: nowrap;
+}
+thead {
+    background-color: LightGreen;
+}
+tfoot {
+    background-color: Pink;
+}
 CSS
-),
-        ]
+            ),
+            (map{ $q->script({-type=>'text/javascript', -src=>"js/$_"}, "") } @{$param->{javascript}}),
+            $q->script({-langage=>"text/javascript"}, "<!--\n", <<'JAVASCRIPT'
+JAVASCRIPT
+            , '// -->')
+       ]
     ));
 
     foreach my $class(qw{namespace class}) {
         my $jp = $class eq 'class' ? 'クラス' : 'ネームスペース';
         $fh->print($q->a({-name=>$class}, $q->h1("$jp\定義")), "\n");
-        $fh->print($q->start_table({-border=>1}), "\n");
-        $fh->print($q->Tr({-align=>'center', -valign=>'top'}, $q->th(['file', 'line', $jp, '内容'])), "\n");
+        $fh->print($q->start_table, "\n");
+        $fh->print($q->thead($q->Tr({-align=>'center', -valign=>'top'}, $q->th(['file', 'line', $jp, '内容']))), "\n");
+        $fh->print($q->start_tbody, "\n");
         foreach(sort{$a cmp $b} grep{/^$class\_/} keys %$test) {
             my ($file) = $test->{$_}->{begin}->{file} =~ /([^\/]+)$/;
             my $line = $test->{$_}->{begin}->{line};
@@ -363,12 +395,14 @@ CSS
             $fh->print($q->Tr({-align=>'left', -valign=>'top'},
                 $q->td([$file, $line, $q->a({-href=>"#$_"}, $name), $comment])), "\n");
         }
+        $fh->print($q->end_tbody, "\n");
         $fh->print($q->end_table, "\n");
     }
 
     $fh->print($q->a({-name=>'method'},$q->h1("メソッド定義")), "\n");
-    $fh->print($q->start_table({-border=>1}));
-    $fh->print($q->Tr({-align=>'center', -valign=>'top'}, $q->th(['file', 'line', 'メソッド', '内容'])), "\n");
+    $fh->print($q->start_table, "\n");
+    $fh->print($q->thead($q->Tr({-align=>'center', -valign=>'top'}, $q->th(['file', 'line', 'メソッド', '内容']))), "\n");
+    $fh->print($q->start_tbody, "\n");
     foreach(sort{
         my $ret = $test->{$a}->{begin}->{file} cmp $test->{$b}->{begin}->{file};
         $ret = $test->{$a}->{begin}->{line} <=> $test->{$b}->{begin}->{line} unless $ret;
@@ -382,7 +416,8 @@ CSS
         $fh->print($q->Tr({-align=>'left', -valign=>'top'}),
             $q->td([$file, $line, $q->a({-href=>"#$_"}, $name), $comment]), "\n");
     }
-    $fh->print($q->end_table);
+    $fh->print($q->end_tbody, "\n");
+    $fh->print($q->end_table, "\n");
 
     foreach my $ns(sort{
         my $ret = $test->{$a}->{begin}->{file} cmp $test->{$b}->{begin}->{file};
@@ -394,8 +429,9 @@ CSS
         my $name = $test->{$ns}->{name};
         $name =~ s/^.*:://;
         $fh->print($q->a({-name=>$ns}, $q->h1("メソッド $name テストパターン")));
-        $fh->print($q->start_table({-border=>1}));
-        $fh->print($q->Tr({-align=>'center', -valign=>'top'}, $q->th(['file', 'line', 'テスト観点項目', '', '', '', '内容'])));
+        $fh->print($q->start_table, "\n");
+        $fh->print($q->thead($q->Tr({-align=>'center', -valign=>'top'}, $q->th(['file', 'line', 'テスト観点項目', '', '', '', '内容']))), "\n");
+        $fh->print($q->start_tbody, "\n");
 
         # 入力
         ## データパターン
@@ -519,7 +555,8 @@ CSS
         ## 例外処理
         ## catch|try|throw
 
-        $fh->print($q->end_table);
+        $fh->print($q->end_tbody, "\n");
+        $fh->print($q->end_table, "\n");
     }
 
     $fh->print($q->end_html);
