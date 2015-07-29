@@ -685,7 +685,7 @@ sub parse {
         while(!$t->eof()) {
             no warnings 'recursion';
             $t = parse($t);
-            last if $t->value =~ /^op_[^,\*&]/
+            last if $t->value =~ /^op_([^,\*&]||::)/
         }
 #print ">token($t->{line}:" .$t->value."\n";
         if($t->value eq 'op_>') {
@@ -790,6 +790,9 @@ sub parse {
             $t->{class}->[0]->{valiable} = [] unless $t->{class}->[0]->{valiable};
             push @{$t->{class}->[0]->{valiable}}, $prev;
         }
+    } elsif($prev->kind eq 'method' && 'ARRAY' eq ref $t->{class}) {
+        $t->{class}->[0]->{method} = [] unless $t->{class}->[0]->{method};
+        push @{$t->{class}->[0]->{method}}, $prev;
     }
 
     return $t;

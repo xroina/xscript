@@ -472,6 +472,7 @@ JAVASCRIPT
                 $title .= "\n$i:$c->{type}($c->{name}):";
                 $title .= join ' ', map {$_->text} @{$c->{token}};
                 $title .= "\nvar{". join(',', map{$_->text} @{$c->{valiable}}) ."}" if 'ARRAY' eq ref $c->{valiable};
+                $title .= "\nmethod{". join(',', map{$_->text} @{$c->{method}}) ."}" if 'ARRAY' eq ref $c->{method};
                 $title .= "\nbase=$c->{base}->{type}($c->{base}->{name})" if $c->{base};
             }
         }
