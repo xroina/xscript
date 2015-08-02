@@ -1,6 +1,6 @@
-this.br = "<BR>\n";
-this.sp = "&nbsp;";
-this.DEBUG = 0;
+var br = "<BR>\n";
+var sp = "&nbsp;";
+var DEBUG = 0;
 
 var that = this;
 
@@ -56,20 +56,20 @@ String.prototype.toEscape = function() {
 
 
 // ブラウザの判定
-this.agent = window.navigator.userAgent.toLowerCase();
-this.GetBrowser = function() {
+var agent = window.navigator.userAgent.toLowerCase();
+function GetBrowser() {
     if((agent.match(/msie/) || agent.match(/trident/)) && agent.match(/windows/)) return true;
     return false;
 };
 
 // ファイル名取得
-this.url = document.URL.replace(/\\/gm, '/');
-this.GetFileName = function() {
+var url = document.URL.replace(/\\/gm, '/');
+function GetFileName() {
     return url.replace(/^[^\/]+\/\/(.+\.[^\.]+)$/, function(s, p) { return p; });
 };
 
 // イベントハンドラの登録
-this.AddEvent = function(element, type, func) {
+function AddEvent(element, type, func) {
     if(element.addEventListener) element.addEventListener(type, func, false);
     else if(element.attachEvent) element.attachEvent('on' + type,
             function() { func.apply(element, arguments); } );
@@ -77,7 +77,7 @@ this.AddEvent = function(element, type, func) {
 };
 
 //イベントハンドラの削除
-this.DelEvent = function(element, type, funcname) {
+function DelEvent(element, type, funcname) {
     if(element.removeEventListener) element.removeEventListener(type, funcname, false );
     else if(element.detachEvent) element.detachEvent('on' + type, funcname );
     else element['on' + type] = null;
@@ -111,7 +111,7 @@ this.TextareaAdjuster = function(textarea) {
 };
 
 //折りたたみ処理
-this.FolderOperation = function(name) {
+function FolderOperation(name) {
     var element = document.getElementById(name);
     if(element.className === 'close') {
         element.style.display = 'block';
@@ -123,7 +123,7 @@ this.FolderOperation = function(name) {
 };
 
 // タグの取得
-this.getTags = function(name) {
+function getTags(name) {
     var tags;
     if(document.querySelectorAll) tags = document.querySelectorAll(name);
     else if(GetBrowser()) tags = document.all.tags(name);
@@ -132,7 +132,7 @@ this.getTags = function(name) {
 };
 
 // 型を取得
-this.getType = function(obj) {
+function getType(obj) {
     if(undefined === obj || null === obj) return 'Null';
     var type = Object.prototype.toString.call(obj).slice(8, -1);
 	if('Number' === type && !isFinite(obj)) type = 'Null';
@@ -186,8 +186,8 @@ function putObject(head, obj, color) {
 };
 
 this.error = function(e, text) { putObject('ERROR:' + text.fontcolor('red').bold(), e, 'palevioletred') };
-this.trace = function(text)    { if(that.DEBUG >= 2) putObject("TRACE", text) };
-this.debug = function(text)    { if(that.DEBUG >= 1) putObject("DEBUG", text) };
+this.trace = function(text)    { if(DEBUG >= 2) putObject("TRACE", text) };
+this.debug = function(text)    { if(DEBUG >= 1) putObject("DEBUG", text) };
 this.info  = function(text)    { putObject("INFO", text) };
 
 function clearMessage() {

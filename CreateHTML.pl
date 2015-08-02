@@ -18,7 +18,7 @@ use LexicalAnalyzer;
 binmode STDOUT, ":utf8";
 
 # コマンド引数の取得
-my $param = {path=>[], javascript =>['Utility.js', 'TableOperation.js']};
+my $param = {path=>[], javascript =>['Utility.js', 'TableOperation.js', 'FileHandle.js']};
 foreach(@ARGV) {
     if(/^-debug$/) { $param->{debug}   = 1; }
     elsif(/^-i(.*)$/) { if($1) { $param->{input}  = $1; } else { $param->{input_flag} = 1; } }
@@ -156,14 +156,34 @@ sub CreateHtml {
 body {
     font-size : 9pt;
 }
+
 h1 {
     font-size : 10pt;
 }
+
 h2 {
     font-size : 9pt;
+    font-weight : lighter;
 }
-li {
-    list-style-type : decimal-leading-zero;
+
+table {
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid gray;
+    white-space: nowrap;
+}
+
+thead {
+    background-color: LightGreen;
+}
+
+tfoot {
+    background-color: Pink;
+}
+
+div.line {
     position : relative;
 }
 
@@ -190,7 +210,6 @@ li {
 .ident {
     color : red;
 }
-
 
 textarea {
     width           : 480px;
@@ -242,7 +261,7 @@ textarea {
    vertical-align: bottom;
    padding-left  : 15px;
    padding-right : 175px;
-#    position:relative absolute; top : -1em;
+/* position:relative absolute; top : -1em; */
 }
 CSS
 ),
@@ -251,27 +270,6 @@ CSS
 
 var ie = GetBrowser();
 var datafile = GetFileName() + '.dat';
-
-// ファイル操作用オブジェクト(windows ie でのみ有効)
-var FileHandle = function(file, flag) {   // flag 1:read 2:write 8:append
-    var fs = new ActiveXObject("Scripting.FileSystemObject");
-    var fh = fs.OpenTextFile(file, flag, true);
-
-    this.readline = function() {
-        return fh.ReadLine();
-    }
-    this.writeline = function(str) {
-        return fh.WriteLine(str);
-    }
-    this.eof = function() {
-        return fh.AtEndOfStream;
-    }
-    this.close = function() {
-        fh.Close();
-        fh = null;
-        fs = null;
-    }
-};
 
 if(ie) {
     AddEvent(window, 'load', function() {
@@ -301,26 +299,28 @@ if(ie) {
 function comment_edit(name, value) {
     document.getElementById('line_' + name).style.backgroundColor = 'yellow';
 
-    var oView = document.getElementById('view_' + name);
-    if(oView.childNodes.length > 0) {
+    var view = document.getElementById('view_' + name);
+    if(view.childNodes.length > 0) {
         document.getElementById('comment_' + name).focus();
         return;
     }
 
-    oView.className = 'fukidashi';
+    view.className = 'fukidashi';
 
-    var oDiv = document.createElement('div');
-    oDiv.className= 'box left';
-    oDiv.onclick = new Function('document.getElementById("comment_' + name + '").focus();');
+    var div = document.createElement('div');
+    div.className= 'box left';
+    div.onclick = new Function('document.getElementById("comment_' + name + '").focus();');
 
     var oInput = document.createElement('textarea');
     oInput.setAttribute('id', 'comment_' + name);
     if(value) oInput.value = value;
     AddEvent(oInput, 'blur', function() { commnet_clear(name); });
     var obj = new TextareaAdjuster(oInput);
-    oDiv.appendChild(oInput);
+    div.appendChild(oInput);
 
-    oView.appendChild(oDiv);
+    view.appendChild(div);
+
+    if(name.match(/^(.+):/)) headder_color(RegExp.$1);
 
     oInput.focus();
 }
@@ -331,12 +331,22 @@ function commnet_clear(name) {
 
     if(text !== '') return;
 
-    document.getElementById('line_' + name).style.backgroundColor = "transparent";
+    document.getElementById('line_' + name).style.backgroundColor = 'transparent';
 
-    var oView = document.getElementById('view_' + name);
-    oView.removeChild(oView.childNodes[0]);
-    oView.removeAttribute('class');
-    oView.removeAttribute('style');
+    var view = document.getElementById('view_' + name);
+    view.removeChild(view.childNodes[0]);
+    view.removeAttribute('class');
+    view.removeAttribute('style');
+
+    if(name.match(/^(.+):/)) headder_color(RegExp.$1);
+}
+
+function headder_color(name) {
+    var tag  = document.getElementById(name + '_code');
+    var head = document.getElementById(name + '_title');
+	if(!tag || !head) return;
+    if(tag.getElementsByTagName('textarea').length > 0) head.style.backgroundColor = 'yellow';
+	else head.style.backgroundColor = "transparent";
 }
 
 // 出力ボタンの処理
@@ -346,47 +356,49 @@ function commnet_output() {
     var doc = win.document;
     doc.open();
 
-    var oHtml = doc.createElement('html');
-    oHtml.setAttribute('lang', 'ja');
+    var html = doc.createElement('html');
+    html.setAttribute('lang', 'ja');
 
-    var oHead = doc.createElement('head');
-    var oTitle = doc.createElement('title');
-    oTitle.innerHTML = datafile;
-    oHead.appendChild(oTitle);
+    var head = doc.createElement('head');
+    var title = doc.createElement('title');
+    title.innerHTML = datafile;
+    head.appendChild(title);
 
-    var oMeta_content = doc.createElement('meta');
-    oMeta_content.setAttribute('content', 'text/html; charset=UTF-8');
-    oMeta_content.setAttribute('http-equiv', 'Content-Type');
-    oHead.appendChild(oMeta_content);
+    var content = doc.createElement('meta');
+    content.setAttribute('content', 'text/html; charset=UTF-8');
+    content.setAttribute('http-equiv', 'Content-Type');
+    head.appendChild(content);
 
-    var oMeta_charset = doc.createElement('meta');
-    oMeta_content.setAttribute('charset', 'UTF-8');
-    oHead.appendChild(oMeta_content);
+    var charset = doc.createElement('meta');
+    charset.setAttribute('charset', 'UTF-8');
+    head.appendChild(charset);
+    html.appendChild(head);
 
-    oHtml.appendChild(oHead);
+    var body = doc.createElement('body');
 
-    var oBody = doc.createElement('body');
+    var tbl = doc.createElement('table');
+    var thd = doc.createElement('thead');
 
-    var oTable = doc.createElement('table'); oTable.border = 1;
-    var oTbody = doc.createElement('tbody');
+    var tr = doc.createElement('tr');
+    var th = doc.createElement('th');
+    th.innerHTML = 'ファイル'; tr.appendChild(th);
+    var th = doc.createElement('th');
+    th.innerHTML = 'ライン';   tr.appendChild(th);
+    var th = doc.createElement('th');
+    th.innerHTML = 'コメント'; tr.appendChild(th);
+    thd.appendChild(tr);
+    tbl.appendChild(thd);
 
-    var oTr = doc.createElement('tr');
-    var oTh = doc.createElement('th');
-    oTh.innerHTML = 'ファイル'; oTr.appendChild(oTh);
-    var oTh = doc.createElement('th');
-    oTh.innerHTML = 'ライン';   oTr.appendChild(oTh);
-    var oTh = doc.createElement('th');
-    oTh.innerHTML = 'コメント'; oTr.appendChild(oTh);
-    oTbody.appendChild(oTr);
-
-	var comments;
-	if(ie)	comments = document.all.tags("textarea");
-	else	comments = document.querySelectorAll('textarea[id^="comment_"]');
+    var tbd = doc.createElement('tbody');
+    var fc = new FileHandle(datafile, 2);
+	var comments = getTags("textarea");
     for(var i = 0; i < comments.length; i++) {
-        comments[i].id.match(/^comment_(.+)_(\d+)$/);
-        var line = RegExp.$2;
-        var file = RegExp.$1.replace(/_/g, '.');
-        var text = comments[i].value;
+        if(!comments[i].id.match(/^comment_(.+):(\d+)$/)) continue;
+        var file = RegExp.$1, line = RegExp.$2, text = comments[i].value;
+        var texts = text.split(/(\x0d\x0a|\x0a|\x0d)/);
+        fc.writeline('<<' + file + ' ' + line + '>>');
+        for(var j in texts) fc.writeline(texts[j]);
+
         text = text.replace(/&/g, '&amp;');
         text = text.replace(/</g, '&lt;');
         text = text.replace(/>/g, '&gt;');
@@ -394,44 +406,39 @@ function commnet_output() {
         text = text.replace(/'/g, '&#x27;');
         text = text.replace(/(\x0d\x0a|\x0a|\x0d)/g, "<br>\n");
 
-        var oTr = doc.createElement('tr');
-        var oTd = doc.createElement('td');
-        oTd.innerHTML = file; oTr.appendChild(oTd);
-        var oTd = doc.createElement('td');
-        oTd.innerHTML = line; oTr.appendChild(oTd);
-        var oTd = doc.createElement('td');
-        oTd.innerHTML = text; oTr.appendChild(oTd);
-        oTbody.appendChild(oTr);
+        var tr = doc.createElement('tr');
+        var td = doc.createElement('td');
+        td.innerHTML = file; tr.appendChild(td);
+        var td = doc.createElement('td');
+        td.innerHTML = line; tr.appendChild(td);
+        var td = doc.createElement('td');
+        td.innerHTML = text; tr.appendChild(td);
+        tbd.appendChild(tr);
     }
-    oTable.appendChild(oTbody);
-    oBody.appendChild(oTable);
+    fc.writeline('<<EOF>>');
+    fc.close();
+    tbl.appendChild(tbd);
+    body.appendChild(tbl);
 
     var oH5 = doc.createElement('H5');
-
     if(ie) {
-        // コメントデータファイルを書く
-        var fc = new FileHandle(datafile, 2);
-        for(var i = 0; i < comments.length; i++) {
-            comments[i].id.match(/^comment_(.+)_(\d+)$/);
-            var line = RegExp.$2;
-            var file = RegExp.$1.replace(/_/g, '.');
-            var text = comments[i].value;
-            fc.writeline('<<' + file + ' ' + line + '>>');
-            text = text.split(/(\x0d\x0a|\x0a|\x0d)/);
-            for(var j in text) fc.writeline(text[j]);
-        }
-        fc.writeline('<<EOF>>');
-        fc.close();
-
         oH5.innerHTML = 'コメントデータファイル(' + datafile + ')を作成しました';
     } else {
         oH5.innerHTML = 'コメントデータファイル(' + datafile + ')はwindowsのIEでないと作成できません<br>' +
            '必要な場合はwindowsで作成しなおしてください。';
     }
-    oBody.appendChild(oH5);
+    body.appendChild(oH5);
 
-    oHtml.appendChild(oBody);
-    doc.appendChild(oHtml);
+    html.appendChild(body);
+    doc.appendChild(html);
+}
+
+function SrcOperation(id) {
+	FolderOperation(id);
+	var span = document.getElementById(id + '_str');
+	var src = document.getElementById(id);
+	if(src.className === 'close') span.innerHTML = '▶';
+	else span.innerHTML = '▼';
 }
 
 JAVASCRIPT
@@ -446,21 +453,20 @@ JAVASCRIPT
                 $fh->print($q->end_ol, $q->end_div, $q->end_code, "\n") if $path;
                 $path = $t->{file};
                 ($file) = $path =~ m#([^/]+)$#;
-
-                $fh->print($q->h1({
-                    -onclick=>"FolderOperation('$file');",
-                    -onmouseover=>"this.style.backgroundColor='skyblue';",
-                    -onmouseout =>"this.style.backgroundColor='';"
-                }, "ソースファイル名：$file"), "\n");
+                $fh->print(
+                    $q->h1({-id=>"$file\_title",
+                    -onclick=>"SrcOperation('$file');",
+                    -onmouseover=>"this.style.backgroundColor = 'skyblue';",
+                    -onmouseout =>"headder_color('$file');"
+                }, $q->span({-style=>'color:blue', -id=>"$file\_str"}, '▶'), "ソースファイル名：$file"), "\n");
                 $fh->print($q->start_div({-id=>"$file", -style=>'display:none; position:relative;', -class=>'close'}));
                 $fh->print($q->h2("ファイルフルパス：$path"), "\n");
-                $fh->print($q->start_code);
+                $fh->print($q->start_code({-id=>"$file\_code"}));
                 $fh->print($q->start_ol, "\n");
             }
-            $name = "$file\_$t->{line}";
-            $name =~ s/\./_/;
-            $fh->print($q->start_li);
-            $fh->print($q->start_div({-id=>"line_$name", -onClick=>"comment_edit('$name');"}));
+            $name = "$file:$t->{line}";
+            $fh->print($q->li);
+            $fh->print($q->start_div({-id=>"line_$name", -onClick=>"comment_edit('$name');", -class=>'line'}));
         }
 
         my $title = $t->kind;
@@ -485,9 +491,8 @@ JAVASCRIPT
         $fh->print($q->span($att, put($t->text)));
 
         if($t->text =~ /\n/ || $t->next->eof) {
-            $fh->print($q->end_div, "\n");
             $fh->print($q->div({-id=>"view_$name"}));
-            $fh->print($q->end_li, "\n");
+            $fh->print($q->end_div, "\n");
         }
     }
     $fh->print($q->end_ol, $q->end_div, $q->end_code, "\n");
