@@ -607,7 +607,7 @@ sub parse {
         $req = '(op_[&\*;\-\+\(]|(ident|number|string|char)_)' if /_return$/;
         $req = 'op_;'              if /_(continue|break)$/;
         $req = 'op_\{'             if /_(do|try)$/;
-        $req = '(op_[&\*\(]|ident|number|string|char)_' if /_throw$/;
+        $req = '(op_[&\*\(]|ident_|number_|string_|char_)' if /_throw$/;
         $req = '(op_\(|ident_)'    if /_new$/;
         $req = '(op_[\(\[]|ident)' if /_delete$/;
         $req = '(op_\(|ident_)'    if /_sizeof$/;
@@ -615,7 +615,7 @@ sub parse {
         $req = 'op_<'              if /_cast$/;
         $req = '(op_[,\(\)\*&>]|ident_.*)$' if /_(int|long|short|float|double|bool|char|.*_t|void|auto|(un)?signed)$/;
         # 各ステートメントが次に要求するトークンと次のトークンが一致しなければエラーにします。
-        parse_error($t) if $req && $next->value() !~ /^$req/;
+        parse_error($t, $req) if $req && $next->value !~ /^$req/;
 
         # 以下のトークンは、tokenが存在するはずがない
         parse_error($t) if /_(return|continue|break|do|try|throw|using|typedef)$/ && grep{$_ ne $t && $_->kind ne 'statement'} @$token;
@@ -625,7 +625,7 @@ sub parse {
         parse_error($t) if /_namespace$/ && grep{$_ ne $t && $_->kind ne 'using'} @$token;
     }
     # ディレクティブ
-    elsif($_ eq 'op_#' && $next->value() =~ /^ident_($directive_reg)$/) {
+    elsif($_ eq 'op_#' && $next->value =~ /^ident_($directive_reg)$/) {
         $t->text("#$1"); $t->kind('directive');
         $next->delete();
         # TODO プリプロセッサ用処理
@@ -635,7 +635,7 @@ sub parse {
     # :: オペレータは周りのidentを巻き込んで大きなidentにまとめます
     elsif(/^op_::$/) {
         if($next->kind() eq 'ident') {
-            $t->text('::' . $next->text());
+            $t->text('::' . $next->text);
             $next->delete();
         } else { parse_error($t); }
         $t->kind('ident');
@@ -799,12 +799,12 @@ sub parse {
 }
 
 sub parse_error {
-    my($t) = @_;
+    my($t, @msg) = @_;
     my $prev = $t->prev('!(space|comment).*');
     my $next = $t->next('!(space|comment).*');
     die "parse error : " . join(" ", caller 0) . "\n" .
-    "$t->{file} ($t->{line})\nprev=". $prev->debug(). "\nthis=". $t->debug(). "\nnext=". $next->debug(). "\n".
-    join(' ', map{$_->text} @{$t->{token}}). "\n";
+    "$t->{file} ($t->{line})\nprev=". $prev->value. "\nthis=". $t->value. "\nnext=". $next->value. "\n".
+    join(' ', map{$_->text} @{$t->{token}}). "\n" . join("\n",  @msg). "\n";
 }
 
 sub debug {
