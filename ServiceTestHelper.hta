@@ -386,7 +386,7 @@ var ff_TestCase= new CreateFileField('testcase', GetFileName().replace(/\.[^\.]*
 //イベント定義
 //==============================================================================
 document.form.execute.onclick = function() {
-	that.DEBUG = parseInt('0'+document.form.debug.value);
+	DEBUG = parseInt('0'+document.form.debug.value);
 	Execute(ff_Service.path.value, ff_TestCase.path.value);
 	ff_Service.write();
 	ff_TestCase.write();

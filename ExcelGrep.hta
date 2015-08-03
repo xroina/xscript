@@ -1,0 +1,261 @@
+<html><head>
+<title>ExcelSelect</title>
+<style type="text/css">
+body {
+    font-size : 9pt;
+}
+h1 {
+    font-size : 10pt;
+}
+table {
+    border-collapse: collapse;
+}
+th {
+    border: 1px solid gray;
+	white-space: nowrap;
+}
+td {
+	width : 10em;
+    border: 1px solid gray;
+}
+thead {
+    background-color: LightGreen;
+}
+tfoot {
+    background-color: Pink;
+}
+</style>
+<script type="text/javascript" src="js/Utility.js"></script>
+<script type="text/javascript" src="js/Connection.js"></script>
+<script type="text/javascript" src="js/FileHandle.js"></script>
+<script langage="text/javascript"><!--
+
+var fileField;
+
+AddEvent(window, 'load', function() {
+	fileField = new CreateFileField('xls', GetFileName().replace(/\.[^\.]*$/, '.ini'));
+
+	AddEvent(document.form.execute, 'click', function() {
+		DEBUG = parseInt('0' + document.form.debug.value);
+		Execute();
+		
+		fileField.write()
+	});
+});
+
+var TIMEOUT = 0;
+
+var ph = {};
+
+//====================================================================================================================
+function Execute() {
+	clearMessage();
+	document.getElementById('result').innerHTML = "";
+	
+	if(document.form.find.value.length == 0) {
+		alert('検索文字列を指定してください');
+		return;
+	}
+
+	if(url.match(/^[^\/]+\/\/[\/\\]{2}/))
+		if(!confirm("ツールの実行パスにネットワークパスが指定されているためファイルの数だけネットワーク警告が発生します。\n"
+			+ "ツールをローカルディスクにコピーして実行することをおすすめします。\n実行してもよろしいですか？"))
+			return;
+
+	ph.files   = [];
+	ph.count   = {};
+	ph.Folders = [fileField.path.value];
+	ph.flag    = document.form.subfolder.checked;
+	try {
+		ph.reg     = new RegExp(document.form.find.value);
+	} catch(e) {
+		alert('検索文字列の正規表現が無効です');
+		return;
+	}
+	document.form.execute.disabled = true;
+
+	setTimeout("Phase0()", TIMEOUT);
+}
+//====================================================================================================================
+function Phase0() {
+	var fs = new ActiveXObject("Scripting.FileSystemObject");
+	var folder = fs.GetFolder(ph.Folders[0]);
+	var em = new Enumerator(folder.Files);
+	for(em.moveFirst(); !em.atEnd(); em.moveNext()) {
+		var file = em.item().Name;
+		if(!file.match(/\.xlsx?$/)) { info('<font color="blue">Excelファイルではありません。スキップします</font>:' + file); continue; }
+		ph.files.push({'path': ph.Folders[0], 'file': file});
+	}
+	em = null;
+	fs = null;
+
+	if(ph.flag) {
+		var em = new Enumerator(folder.SubFolders);
+		for(em.moveFirst(); !em.atEnd(); em.moveNext())
+			ph.Folders.push(ph.Folders[0] + "\\" + em.item().Name);
+		em = null;
+	}
+	ph.Folders.shift();
+
+	var p = -1;
+	if(ph.Folders.length > 0)    { p = 0; info('サブフォルダを検索しています:' + ph.Folders[0]); }
+	else if(ph.files.length > 0) { p = 1; ph.file  = 0; }
+	else info('<font color="red">対象のファイルが見当たりませんでした。パスを見直してください</font>');
+	if(p >= 0) setTimeout('Phase' + p + '()', TIMEOUT);
+}
+
+//====================================================================================================================
+function Phase1() {
+	if(!('file' in ph)) return;
+
+	ph.name    = ph.files[ph.file].name;
+	info('ファイル："' + ph.files[ph.file].file + '" を検索します)');
+
+	ph.cn = new Connection(MSExcel12_OLE_Driver, {
+		file:ph.files[ph.file].path + "/" + ph.files[ph.file].file,
+		readonly:1});
+
+	var func = 'Phase';
+	var p = -1;
+	if(ph.cn.exists) { ph.table = 0; p = 2; }
+	else {
+		ph.file++;
+		p = (ph.file < ph.files.length ? 1 : 3);
+	}
+	if(p >= 0) setTimeout('Phase' + p + '()', TIMEOUT);
+}
+
+//====================================================================================================================
+function Phase2() {
+	if(!('file' in ph) || !('table' in ph)) return;
+	
+	var cn = ph.cn;
+	var table = cn.table[ph.table];
+	
+	if(table) {
+		cn.select('* FROM [' + table + ']');
+		var line = 0;
+		for(var line = 0; !cn.eof(); cn.next()) {
+			line++;
+			// １行取得
+			var values = [];
+			for (var i = 0; i < cn.count(); i++) {
+				var text = cn.item(i);
+				var type = getType(text);
+				if(type === 'Null') text = '';
+				if(type !== 'String') text = new String(text);
+				values[i] = text.replace(/^\s*(.*?)\s*$/, function(s,p){return p})	// 前後のスペースを消す
+					.replace(/\015\012|\012|\015/gm, '')							// 改行を消す
+					.replace(/\t/gm, '    ')										// tabを消す
+					.toOneByte();													// 半角文字にする
+			}
+			if(values.join('').length == 0) continue;		// データのない行は飛ばす
+			var str = values.join("\t");
+			if(str.match(ph.reg)) {							// 検索条件にヒットするか
+				if(!ph.data) ph.data = [];
+				ph.data.push({
+					file	: ph.files[ph.file].file,
+					path	: ph.files[ph.file].path,
+					table	: table,
+					line	: line,
+					values	: values
+				});
+				if(!ph.size) ph.size = 0;
+				if(ph.size < values.length) ph.size = values.length;
+			}
+		}
+	}
+	
+	var p = -1;
+	ph.table++;
+	if(ph.table < ph.cn.table.length) p = 2;
+	else {
+		ph.cn.final();
+		ph.cn = null;
+		delete(ph.cn);
+
+		ph.table = 0;
+		ph.file++;
+		p = (ph.file < ph.files.length ? 1 : 3);
+	}
+	if(p >= 0) setTimeout('Phase' + p + '()', TIMEOUT);
+}
+
+//HTMLの構成====================================================================================================================
+function Phase3() {
+
+	var tbl = document.createElement('table');
+	var thd = document.createElement('thead');
+	var tr,th,td;
+
+	// ヘッダ
+	tr = document.createElement('tr');
+	th = document.createElement('th'); th.style.fontSize = 'xx-small';
+	th.innerHTML = '#';		tr.appendChild(th);
+	th = document.createElement('th'); th.style.fontSize = 'xx-small';
+	th.innerHTML = 'File';	tr.appendChild(th);
+	th = document.createElement('th'); th.style.fontSize = 'xx-small';
+	th.innerHTML = 'Sheet';	tr.appendChild(th);
+	th = document.createElement('th'); th.style.fontSize = 'xx-small';
+	th.innerHTML = 'Line';	tr.appendChild(th);
+
+	for(var i = 0; i < ph.size; i++) {
+		th = document.createElement('th'); th.style.fontSize = 'xx-small';
+		th.innerHTML = i; tr.appendChild(th);
+	}
+	thd.appendChild(tr);
+	tbl.appendChild(thd);
+
+	// 本体
+	var tbd = document.createElement('tbody');
+	var line = 0;
+	for(var i in ph.data) {
+		line++;
+		tr = document.createElement('tr');
+		th = document.createElement('th'); th.style.fontSize = 'xx-small';
+		th.innerHTML = line;	tr.appendChild(th);
+		td = document.createElement('td'); td.style.fontSize = 'x-small';
+		var a = document.createElement('a');
+		a.href = 'file://' + ph.data[i].path + '/' + ph.data[i].file;
+		a.innerHTML = ph.data[i].file.toHTML();
+		td.appendChild(a);
+		tr.appendChild(td);
+		td = document.createElement('td'); td.style.fontSize = 'x-small';
+		td.innerHTML = ph.data[i].table.toHTML();	tr.appendChild(td);
+		td = document.createElement('td'); td.style.fontSize = 'x-small';
+		td.innerHTML = ph.data[i].line;		tr.appendChild(td);
+		for(var j = 0; j < ph.size; j++) {
+			td = document.createElement('td');
+			if(ph.data[i].values[j]) td.innerHTML = ph.data[i].values[j].toHTML();
+			tr.appendChild(td);
+		}
+		tbd.appendChild(tr);
+	}
+	tbl.appendChild(tbd);
+
+	document.getElementById('result').appendChild(tbl);
+
+	document.form.execute.disabled = false;
+}
+
+//--></script>
+</head>
+<body>
+
+
+<form name="form">
+<input type="text" name="debug" size=1>
+検索パス <span id='xls'></span>
+<div style="font-size:x-small">
+<a href="https://msdn.microsoft.com/ja-jp/library/Cc392020.aspx">検索文字列</a><input type="text" name="find" size=50 title="正規表現で入力してください。
+セル内の改行は無視されます。
+全角英数は半角文字で検索してください。
+複数のセルにまたがる検索はタブ(\t)で区切ることで検索できます。">
+	<input type="checkbox" name="subfolder" style="width:10px;height:10px;vertical-align:middle;">&nbsp;サブフォルダも検索する&nbsp;
+	<input type="button" name="execute" value=" 実行 ">
+</div>
+</form>
+
+<div id="result"></div><BR>
+
+</body></html>

@@ -90,9 +90,8 @@ function Phase1() {
 	info("ファイル：" + ph.files[ph.file].file + " (" + (ph.files[ph.file].service ? "サービスの単体試験成績表" : "ディシジョンテーブル") + "を解析します)");
 
 	ph.cn = new Connection(MSExcel12_ODBC_Driver, {
-		file : ph.files[ph.file].path + "/" + ph.files[ph.file].file,
-		readonly : 1
-	});
+		file:ph.files[ph.file].path + "/" + ph.files[ph.file].file,
+		readonly:1});
 
 	var func = 'Phase';
 	if(ph.cn.exists) { ph.table = 0; func += 2; }
@@ -527,7 +526,7 @@ var fileField = new CreateFileField('ini', GetFileName().replace(/\.[^\.]*$/, '.
 
 //イベント定義====================================================================================================================
 document.form.execute.onclick = function() {
-	that.DEBUG = parseInt('0'+document.form.debug.value);
+	DEBUG = parseInt('0'+document.form.debug.value);
 	this.disabled = true;
 	Execute(fileField.path.value, document.form.subfolder.checked);
 	fileField.write()
