@@ -148,8 +148,11 @@ sub CreateHtml {
     $fh->print($q->start_html(-title=>$param->{title}, -lang =>'ja',
         -head=>[
             $q->meta({
-                'http-equiv'=>'Content-Type',
-                -content    =>'text/html; charset=UTF-8'}),
+                'http-equiv'=> 'Content-Type',
+                -content    => 'text/html; charset=UTF-8'}),
+            $q->meta({
+                'http-equiv'=> 'X-UA-Compatible',
+                -content    => 'IE=9'}),
             $q->meta({-charset=>'UTF-8'}),
             $q->style({-type=>'text/css'}, "\n", <<"CSS"
 

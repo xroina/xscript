@@ -144,14 +144,12 @@ var CreateFileField = function(name, data_file, filemode) {
 		if(e.stopPropagation) e.stopPropagation();
 		if(e.preventDefault) e.preventDefault();
 
-		var files = e.dataTransfer.files;
-		var files_info = "";
-		for(var i=0; i<files.length; i++) {
-			files_info += (i+1) + "つ目のファイル情報：" + "<b>[name]</b> "
-			+ files[i].name + " <b>[size]</b> " + files[i].size + " <b>[type]</b> "
-			+ files[i].type + "<br>";
+putObject('DROP', OpenObject2(e));
+putObject('DROP', OpenObject2(e.dataTransfer));
+
+		if(e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+			_super.path.value = e.dataTransfer.files[0].name;
 		}
-		info(files_info);
 
 		return false;
 	});
@@ -180,7 +178,7 @@ CreateFileField.prototype.option = function() {
 		option.innerHTML = this.list[i];
 		this.sel.appendChild(option);
 	}
-	this.sel.style.width = 30;
+	this.sel.style.width = '20pt';
 	this.sel.selectIndex = 0;
 };
 

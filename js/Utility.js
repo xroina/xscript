@@ -6,7 +6,7 @@ var DEBUG = 0;
 Date.prototype.ToString = function() {
 	return this.getFullYear() + "/"
 		+ ("0"+(this.getMonth() + 1)).slice(-2) + "/"
-		+ ("0"+ this.getDate()      ).slice(-2);
+		+ ("0"+ this.getDate()		).slice(-2);
 };
 // Dateオブジェクトに関数を追加
 Date.prototype.ToStringLong = function() {
@@ -34,16 +34,16 @@ String.prototype.jpLength = function() {
 
 // 全角文字列を半角字列に変換する
 String.prototype.toOneByte = function() {
-    return this.replace(/[\uff01-\uff5e]/g, function(s) {
-        return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
-    });
+	return this.replace(/[\uff01-\uff5e]/g, function(s) {
+		return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+	});
 };
  
 // 半角英字列を全角文字列に変換する
 String.prototype.toTwoByte = function() {
-    return this.replace(/[\x21-\x7e]/g, function(s) {
-        return String.fromCharCode(s.charCodeAt(0) + 0xFEE0);
-    });
+	return this.replace(/[\x21-\x7e]/g, function(s) {
+		return String.fromCharCode(s.charCodeAt(0) + 0xFEE0);
+	});
 };
 
 String.prototype.toEscape = function() {
@@ -56,97 +56,97 @@ String.prototype.toEscape = function() {
 // ブラウザの判定
 var agent = window.navigator.userAgent.toLowerCase();
 function GetBrowser() {
-    if((agent.match(/msie/) || agent.match(/trident/)) && agent.match(/windows/)) return true;
-    return false;
+	if((agent.match(/msie/) || agent.match(/trident/)) && agent.match(/windows/)) return true;
+	return false;
 };
 
 // ファイル名取得
 var url = document.URL.replace(/\\/gm, '/');
 function GetFileName() {
-    return url.replace(/^[^\/]+\/\/(.+\.[^\.]+)$/, function(s, p) { return p; });
+	return url.replace(/^[^\/]+\/\/(.+\.[^\.]+)$/, function(s, p) { return p; });
 };
 
 // イベントハンドラの登録
 function AddEvent(element, type, func) {
-    if(element.addEventListener) element.addEventListener(type, func, false);
-    else if(element.attachEvent) element.attachEvent('on' + type,
-            function() { func.apply(element, arguments); } );
-    else element['on' + type] = func;
+	if(element.addEventListener) element.addEventListener(type, func, false);
+	else if(element.attachEvent) element.attachEvent('on' + type,
+			function() { func.apply(element, arguments); } );
+	else element['on' + type] = func;
 };
 
 //イベントハンドラの削除
 function DelEvent(element, type, funcname) {
-    if(element.removeEventListener) element.removeEventListener(type, funcname, false );
-    else if(element.detachEvent) element.detachEvent('on' + type, funcname );
-    else element['on' + type] = null;
+	if(element.removeEventListener) element.removeEventListener(type, funcname, false );
+	else if(element.detachEvent) element.detachEvent('on' + type, funcname );
+	else element['on' + type] = null;
 };
 
 //テキストエリアのリサイズ関数
 this.TextareaAdjuster = function(textarea) {
-    textarea.style.overflow = 'hidden';
-    var defaultHeight = textarea.offsetHeight;
+	textarea.style.overflow = 'hidden';
+	var defaultHeight = textarea.offsetHeight;
 
-    function adjustTa() {
-        textarea.style.height = defaultHeight + 'px';
-        var tmp_sh = textarea.scrollHeight;
-        while(tmp_sh > textarea.scrollHeight) {
-            tmp_sh = textarea.scrollHeight;
-            textarea.scrollHeight++;
-        }
-        if(textarea.scrollHeight > textarea.offsetHeight) {
-            textarea.style.height = textarea.scrollHeight + 'px';
-        }
-    }
-    function resetTa(){
-        textarea.scrollTop = 0;
-        textarea.style.height = defaultHeight + 'px';
-    }
+	function adjustTa() {
+		textarea.style.height = defaultHeight + 'px';
+		var tmp_sh = textarea.scrollHeight;
+		while(tmp_sh > textarea.scrollHeight) {
+			tmp_sh = textarea.scrollHeight;
+			textarea.scrollHeight++;
+		}
+		if(textarea.scrollHeight > textarea.offsetHeight) {
+			textarea.style.height = textarea.scrollHeight + 'px';
+		}
+	}
+	function resetTa(){
+		textarea.scrollTop = 0;
+		textarea.style.height = defaultHeight + 'px';
+	}
 
-    AddEvent(textarea, 'focus',  function() { adjustTa(); });
-    AddEvent(textarea, 'keyup',  function() { adjustTa(); });
-    AddEvent(textarea, 'change', function() { adjustTa(); resetTa(); });
-    AddEvent(textarea, 'blur',   function() { adjustTa(); /*resetTa();*/ });
+	AddEvent(textarea, 'focus',	 function() { adjustTa(); });
+	AddEvent(textarea, 'keyup',	 function() { adjustTa(); });
+	AddEvent(textarea, 'change', function() { adjustTa(); resetTa(); });
+	AddEvent(textarea, 'blur',	 function() { adjustTa(); /*resetTa();*/ });
 };
 
 //折りたたみ処理
 function FolderOperation(name) {
-    var element = document.getElementById(name);
-    if(element.className === 'close') {
-        element.style.display = 'block';
-        element.className     = 'open';
-    } else {
-        element.style.display = 'none';
-        element.className     = 'close';
-    }
+	var element = document.getElementById(name);
+	if(element.className === 'close') {
+		element.style.display = 'block';
+		element.className	  = 'open';
+	} else {
+		element.style.display = 'none';
+		element.className	  = 'close';
+	}
 };
 
 // タグの取得
 function getTags(name) {
-    var tags;
-    if(document.querySelectorAll) tags = document.querySelectorAll(name);
-    else if(GetBrowser()) tags = document.all.tags(name);
-    else alert('getTags Not Support Browser!!');
-    return tags;
+	var tags;
+	if(document.querySelectorAll) tags = document.querySelectorAll(name);
+	else if(GetBrowser()) tags = document.all.tags(name);
+	else alert('getTags Not Support Browser!!');
+	return tags;
 };
 
 // 型を取得
 function getType(obj) {
-    if(undefined === obj || null === obj) return 'Null';
-    var type = Object.prototype.toString.call(obj).slice(8, -1);
+	if(undefined === obj || null === obj) return 'Null';
+	var type = Object.prototype.toString.call(obj).slice(8, -1);
 	if('Number' === type && !isFinite(obj)) type = 'Null';
 	return type;
 };
 /*
-    Null
-    String
-    Number
-    Boolean
-    Date
-    Error
-    Array
-    Function
-    RegExp
-    Object
+	Null
+	String
+	Number
+	Boolean
+	Date
+	Error
+	Array
+	Function
+	RegExp
+	Object
  */
 
 function OpenObject(obj) {
@@ -157,36 +157,59 @@ function OpenObject(obj) {
 		});
 		return "'" + obj + "'";
 	}
-    if(type.match(/^Null$/))   return 'null';
-    if(type.match(/^Date$/))   return obj.ToStringLong();
-    if(type.match(/^RegExp$/)) return obj.toString();
-    if(type.match(/^(Number|Boolean)$/)) return new String(obj);
-    var s = '';
-    for(var i in obj) {
-    	if(s.length > 0) s += ',';
-    	s +=  i + '=' + OpenObject(obj[i]);
-    }
-    return '{ ' + s + ' }';
+	if(type.match(/^Null$/))   return 'null';
+	if(type.match(/^Date$/))   return obj.ToStringLong();
+	if(type.match(/^RegExp$/)) return obj.toString();
+	if(type.match(/^(Number|Boolean|Function)$/)) return new String(obj);
+	var s = '';
+	for(var i in obj) {
+		if(s.length > 0) s += ',';
+		s +=  i + '=' + OpenObject(obj[i]);
+	}
+	return '{ ' + s + ' }';
 }
+
+function OpenObject2(obj) {
+	var type = getType(obj);
+	if(type.match(/^String$/)) {
+		obj.replace(/[\x00-\x1f]/gm, function(s) {
+			'\\x' + ("0" + Number(s.charCodeAt(0)).toString(16)).slice(-2);
+		});
+		return "'" + obj + "'";
+	}
+	if(type.match(/^Null$/))   return 'null';
+	if(type.match(/^Date$/))   return obj.ToStringLong();
+	if(type.match(/^RegExp$/)) return obj.toString();
+	if(type.match(/^(Number|Boolean|Function)$/)) return new String(obj);
+	var s = '';
+	for(var i in obj) {
+		if(s.length > 0) s += ',';
+		try {
+			s +=  i + /*'[' + getType(obj[i]) + ']*/ ' = ' + obj[i];
+		} catch(e) {}
+	}
+	return '{ ' + s + ' }';
+}
+
 
 // デバック用表示処理
 function putObject(head, obj, color) {
-    var d = new Date();
-    if(!color) color = 'black';
-    var ins = document.createElement('p');
-    ins.style.color = color;
-    ins.style.fontSize = 'x-small';
-    ins.style.border   = '1px solid gray';
-    ins.className = 'STDOUT';
-    ins.innerHTML = '[' + d.ToStringLong() + '][' + head + ']' + OpenObject(obj);
-    document.body.appendChild(ins);
+	var d = new Date();
+	if(!color) color = 'black';
+	var ins = document.createElement('p');
+	ins.style.color = color;
+	ins.style.fontSize = 'x-small';
+	ins.style.border   = '1px solid gray';
+	ins.className = 'STDOUT';
+	ins.innerHTML = '[' + d.ToStringLong() + '][' + head + ']' + OpenObject(obj);
+	document.body.appendChild(ins);
 
 };
 
 this.error = function(e, text) { putObject('ERROR:' + text.fontcolor('red').bold(), e, 'palevioletred') };
-this.trace = function(text)    { if(DEBUG >= 2) putObject("TRACE", text) };
-this.debug = function(text)    { if(DEBUG >= 1) putObject("DEBUG", text) };
-this.info  = function(text)    { putObject("INFO", text) };
+this.trace = function(text)	   { if(DEBUG >= 2) putObject("TRACE", text) };
+this.debug = function(text)	   { if(DEBUG >= 1) putObject("DEBUG", text) };
+this.info  = function(text)	   { putObject("INFO", text) };
 
 function clearMessage() {
 	var tags = getTags('p');
