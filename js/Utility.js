@@ -3,26 +3,43 @@ var sp = "&nbsp;";
 var DEBUG = 0;
 
 // Dateオブジェクトに関数を追加
+// "YYYY/MM/DD"形式の文字列を取得
 Date.prototype.ToString = function() {
-	return this.getFullYear() + "/"
-		+ ("0"+(this.getMonth() + 1)).slice(-2) + "/"
-		+ ("0"+ this.getDate()		).slice(-2);
-};
-// Dateオブジェクトに関数を追加
-Date.prototype.ToStringLong = function() {
-	return this.ToString() + " "
-		+ ("0"+ this.getHours()).slice(-2) + ":"
-		+ ("0"+ this.getMinutes()).slice(-2) + ":"
-		+ ("0"+ this.getSeconds()).slice(-2) + "."
-		+ ("00"+this.getMilliseconds()).slice(-3)
+	return this.getFullYear() + '/'
+		+ ('0' + (this.getMonth() + 1)).slice(-2) + '/'
+		+ ('0' + this.getDate()).slice(-2);
 };
 
+// "YYYY/MM/DD hh:mm:ss.nnn"形式の文字列を取得
+Date.prototype.ToStringLong = function() {
+	return this.ToString() + ' '
+		+ ('0' + this.getHours()).slice(-2) + ":"
+		+ ('0' + this.getMinutes()).slice(-2) + ":"
+		+ ('0' + this.getSeconds()).slice(-2) + "."
+		+ ('00' + this.getMilliseconds()).slice(-3)
+};
+
+// Stringオブジェクトに関数を追加
+// コントロールコードをエスケープシーケンスに変換
+String.prototype.toEscape = function() {
+	return this.replace(/\\/gm, '\\\\').replace(/"/gm, '\\"')	//'
+		.replace(/[\x00-\x1f]/gm, function(s) {
+			var c = new Number(s.charCodeAt(0));
+			if(c = 0x0a) return '\\n';
+			if(c = 0x09) return '\\t';
+			return '\\x' + ("0" + c.toString(16)).slice(-2);
+		}
+	);
+}
+
+// HTMLで出力できない文字列を&xx;形式に変換する
 String.prototype.toHTML = function() {
 	return this.replace(/&/gm, '&amp;').replace(/</gm, '&lt;').
 		replace(/>/gm, '&gt;').replace(/ /gm, sp).
 		replace(/\t/gm, sp+sp+sp+sp).replace(/\n/gm, br);
 };
 
+// 全角を2文字、半角を1文字として文字列長を取得
 String.prototype.jpLength = function() {
 	var len = 0;
 	for(var i = 0; i < this.length; i++) {
@@ -46,13 +63,6 @@ String.prototype.toTwoByte = function() {
 	});
 };
 
-String.prototype.toEscape = function() {
-	return this.replace(/[\x00-\x1f]/gm, function(s) {
-		return '\\x' + ("0" + Number(s.charCodeAt(0)).toString(16)).slice(-2);
-	});
-}
-
-
 // ブラウザの判定
 var agent = window.navigator.userAgent.toLowerCase();
 function GetBrowser() {
@@ -63,21 +73,21 @@ function GetBrowser() {
 // ファイル名取得
 var url = document.URL.replace(/\\/gm, '/');
 function GetFileName() {
-	return url.replace(/^[^\/]+\/\/(.+\.[^\.]+)$/, function(s, p) { return p; });
+	var file = url.replace(/^[^\/]+\/\/(.+)$/, function(s, p) { return p; });
+	return file;
 };
 
 // イベントハンドラの登録
 function AddEvent(element, type, func) {
 	if(element.addEventListener) element.addEventListener(type, func, false);
-	else if(element.attachEvent) element.attachEvent('on' + type,
-			function() { func.apply(element, arguments); } );
+	else if(element.attachEvent) element.attachEvent('on' + type, function() { func.apply(element, arguments); } );
 	else element['on' + type] = func;
 };
 
 //イベントハンドラの削除
 function DelEvent(element, type, funcname) {
 	if(element.removeEventListener) element.removeEventListener(type, funcname, false );
-	else if(element.detachEvent) element.detachEvent('on' + type, funcname );
+	else if(element.detachEvent)    element.detachEvent('on' + type, funcname );
 	else element['on' + type] = null;
 };
 
@@ -131,9 +141,12 @@ function getTags(name) {
 
 // 型を取得
 function getType(obj) {
-	if(undefined === obj || null === obj) return 'Null';
-	var type = Object.prototype.toString.call(obj).slice(8, -1);
-	if('Number' === type && !isFinite(obj)) type = 'Null';
+	var type = 'Unknown';
+	try {
+		if(undefined === obj || null === obj) return 'Null';
+		type = Object.prototype.toString.call(obj).slice(8, -1);
+		if('Number' === type && !isFinite(obj)) type = 'Null';
+	} catch(e) {}
 	return type;
 };
 /*
@@ -147,70 +160,46 @@ function getType(obj) {
 	Function
 	RegExp
 	Object
- */
+	Unknown
+*/
 
-function OpenObject(obj) {
-	var type = getType(obj);
-	if(type.match(/^String$/)) {
-		obj.replace(/[\x00-\x1f]/gm, function(s) {
-			'\\x' + ("0" + Number(s.charCodeAt(0)).toString(16)).slice(-2);
-		});
-		return "'" + obj + "'";
-	}
-	if(type.match(/^Null$/))   return 'null';
-	if(type.match(/^Date$/))   return obj.ToStringLong();
-	if(type.match(/^RegExp$/)) return obj.toString();
-	if(type.match(/^(Number|Boolean|Function)$/)) return new String(obj);
-	var s = '';
-	for(var i in obj) {
-		if(s.length > 0) s += ',';
-		s +=  i + '=' + OpenObject(obj[i]);
-	}
-	return '{ ' + s + ' }';
-}
+var OpenObjectMax = 3;
+function OpenObject(obj, count) {
+	if(count) count++; else count = 1;
+	if(count > OpenObjectMax) return 'OverRange:"' + (new String(obj)).toEscape().toHTML() + '"';
 
-function OpenObject2(obj) {
 	var type = getType(obj);
-	if(type.match(/^String$/)) {
-		obj.replace(/[\x00-\x1f]/gm, function(s) {
-			'\\x' + ("0" + Number(s.charCodeAt(0)).toString(16)).slice(-2);
-		});
-		return "'" + obj + "'";
-	}
-	if(type.match(/^Null$/))   return 'null';
-	if(type.match(/^Date$/))   return obj.ToStringLong();
-	if(type.match(/^RegExp$/)) return obj.toString();
-	if(type.match(/^(Number|Boolean|Function)$/)) return new String(obj);
-	var s = '';
+	if(type.match(/^(String|Number|Boolean|RegExp|Function)$/))
+		return '"' + (new String(obj)).toEscape().toHTML() + '"';
+	if(type.match(/^(Null|Unknown)$/)) return type;
+	if(type.match(/^Date$/)) return obj.ToStringLong();
+
+	var ary = [];
 	for(var i in obj) {
-		if(s.length > 0) s += ',';
+		var o = obj[i];
+		var str = i + ':';
 		try {
-			s +=  i + /*'[' + getType(obj[i]) + ']*/ ' = ' + obj[i];
-		} catch(e) {}
+			str += OpenObject(o, count);
+		} catch(e) {
+			str += '[' + getType(o) + ']' + o;
+		}
+		ary.push(str);
 	}
-	return '{ ' + s + ' }';
+	return '{' + ary.join(',') + '}';
 }
-
 
 // デバック用表示処理
 function putObject(head, obj, color) {
-	var d = new Date();
-	if(!color) color = 'black';
 	var ins = document.createElement('p');
-	ins.style.color = color;
+	if(color) ins.style.color = color;
 	ins.style.fontSize = 'x-small';
 	ins.style.border   = '1px solid gray';
 	ins.className = 'STDOUT';
-	ins.innerHTML = '[' + d.ToStringLong() + '][' + head + ']' + OpenObject(obj);
+	ins.innerHTML = '[' + (new Date()).ToStringLong() + '][' + head + ']' + OpenObject(obj);
 	document.body.appendChild(ins);
-
 };
 
-this.error = function(e, text) { putObject('ERROR:' + text.fontcolor('red').bold(), e, 'palevioletred') };
-this.trace = function(text)	   { if(DEBUG >= 2) putObject("TRACE", text) };
-this.debug = function(text)	   { if(DEBUG >= 1) putObject("DEBUG", text) };
-this.info  = function(text)	   { putObject("INFO", text) };
-
+// デバック表示領域のクリア
 function clearMessage() {
 	var tags = getTags('p');
 	for(var i = tags.length; i > 0; i--) {
@@ -223,3 +212,7 @@ function clearMessage() {
 	}
 };
 
+this.error = function(e, text) { putObject('ERROR:' + text.fontcolor('red').bold(), e, 'palevioletred') };
+this.trace = function(text)	   { if(DEBUG >= 2) putObject("TRACE", text) };
+this.debug = function(text)	   { if(DEBUG >= 1) putObject("DEBUG", text) };
+this.info  = function(text)	   { putObject("INFO", text) };

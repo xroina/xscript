@@ -1,6 +1,6 @@
 <html><head>
 <title>ExcelSelect</title>
-<meta http-equiv="X-UA-Compatible" content="IE=9" />
+<meta http-equiv="X-UA-Compatible" content="IE=10" />
 <style type="text/css">
 body {
     font-size : 9pt;
@@ -164,7 +164,7 @@ for(var i in drivers) {
 
 //イベント定義====================================================================================================================
 document.form.execute.onclick = function() {
-	that.DEBUG = parseInt('0'+document.form.debug.value);
+	DEBUG = parseInt('0'+document.form.debug.value);
 	var index = document.form.sheets.selectedIndex;
 	Execute(fileField.path.value, document.form.sheets.options[index].text);
 	fileField.write()

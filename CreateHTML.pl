@@ -152,7 +152,7 @@ sub CreateHtml {
                 -content    => 'text/html; charset=UTF-8'}),
             $q->meta({
                 'http-equiv'=> 'X-UA-Compatible',
-                -content    => 'IE=9'}),
+                -content    => 'IE=10'}),
             $q->meta({-charset=>'UTF-8'}),
             $q->style({-type=>'text/css'}, "\n", <<"CSS"
 
