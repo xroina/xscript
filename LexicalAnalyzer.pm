@@ -1,283 +1,31 @@
-package Token;
-
-use strict;
-use warnings;
-use utf8;
-
-sub new {
-    my($this, $text, $kind) = @_;
-    $text = '' unless defined $text;
-    $kind = '' unless defined $kind;
-    $this = bless {prv=>undef, nxt=>undef, kind=>$kind, text=>$text}, $this;
-    if(ref($text) =~ /^(HASH|Token)$/ ) { $this->{$_} = $text->{$_} foreach keys %$text }
-    $this->{prv} = $this;
-    $this->{nxt} = $this;
-    return $this;
-}
-
-sub text {
-    my($this, $text) = @_;
-    $this->{text} = $text if defined $text;
-    $this->{text};
-}
-
-sub kind {
-    my($this, $kind) = @_;
-    $this->{kind} = $kind if defined $kind;
-    $this->{kind};
-}
-
-sub value {
-    my($this) = @_;
-    $this->kind() .'_'. $this->text();
-}
-
-sub next {
-    my($this, $kind, $end) = @_;
-    return $this->{nxt} unless $kind;
-    my $flag; $flag = 1, $kind = $1 if $kind =~ /^!(.*)$/;
-    while(!$this->eof($end)) {
-        $this = $this->next();
-        last if $flag ? $this->value() !~ /^($kind)$/ : $this->value() =~ /^($kind)$/;
-    }
-    return $this;
-}
-
-sub prev {
-    my($this, $kind, $end) = @_;
-    return $this->{prv} unless $kind;
-    my $flag; $flag = 1, $kind = $1 if $kind =~ /^!(.*)$/;
-    while(!$this->bof($end)) {
-        $this = $this->prev();
-        last if $flag ? $this->value() !~ /^($kind)$/ : $this->value() =~ /^($kind)$/;
-    }
-    return $this;
-}
-
-sub add {
-    my $this = shift;
-    foreach(@_) {
-        my $add = $_;
-        if('ARRAY' eq ref $add) {
-            $this->add($_), $this = $this->next foreach @$add;
-            return;
-        }
-        $add = new Token($add) unless'Token' eq ref $add;
-
-        $add->{nxt} = $this->next if !$this->eof && $add->eof;
-        $add->{prv} = $this;
-        $this->next->{prv} = $add if !$this->eof;
-        $this->{nxt} = $add;
-#print '"'.$add->value , '"'."\n";
-    }
-}
-
-sub insert {
-    my $this = shift;
-    foreach(@_) {
-        my $ins = $_;
-        if('ARRAY' eq ref $ins) {
-            $this->insert($_) foreach @$ins;
-            return;
-        }
-        $ins = new Token($ins) unless'Token' eq ref $ins;
-
-        $ins->{prv} = $this->prev unless $this->bof;
-        $ins->{nxt} = $this;
-        $this->prev->{nxt} = $ins unless $this->bof;
-        $this->{prv} = $ins;
-    }
-}
-
-sub delete {
-    my($this, $tuple) = @_;
-    if('ARRAY' eq ref $tuple) {
-        $this->delete($_) foreach @$tuple;
-        return;
-    } elsif('Token' eq ref $tuple) {
-    	$tuple->delete();
-    	return;
-    }
-    $this->prev()->{nxt} = $this->next();
-    $this->next()->{prv} = $this->prev();
-}
-
-sub eof {
-    my($this, $end) = @_;
-    $end = new Token() unless 'Token' eq ref $end;
-    return $this->next() == $this || $end->next() == $this;
-}
-
-sub bof {
-    my($this, $end) = @_;
-    $end = new Token() unless 'Token' eq ref $end;
-    return $this->prev() == $this || $end->prev() == $this;
-}
-
-sub begin {
-    my($this) = @_;
-    my $ret = $this->prev();
-    $ret = $ret->prev() while !$ret->bof();
-    return $ret;
-}
-
-sub end {
-    my($this) = @_;
-    my $ret = $this->next();
-    $ret = $ret->next() while !$ret->eof();
-    return $ret;
-}
-
-sub debug {
-    my($this) = @_;
-    "[$this] text=".$this->text()." kind=".$this->kind()." prev=".$this->prev()." next=".$this->next();
-}
-
-sub line {
-    my($this) = @_;
-    my $line = 1;
-    for(my $t = $this->begin(); !$t->eof($this); $t = $t->next()) {
-        $line++ if $t->text() =~ /\n/;
-    }
-    return $line;
-}
-
-#===============================================================================
-package TokenHeadder;
-
-use strict;
-use warnings;
-use utf8;
-
-sub new {
-    my($this, $params) = @_;
-    $this = bless {begin=>new Token(), end=>new Token(), esc=>'\\',
-        comment=>[ {begin=>'/*', end=>'*/'}, {begin=>'//', end=>'\n'} ]
-    }, $this;
-    $this->{begin}->add($this->{end});
-#print "begin:",$this->{begin}->debug, "\n";
-#print "end:",$this->{end}->debug, "\n";
-    $this->{$_} = $params->{$_} foreach keys %$params;
-
-    return $this;
-}
-
-sub begin {
-    my($this) = @_;
-    return $this->{begin}->next;
-}
-
-sub end {
-    my($this) = @_;
-    return $this->{end}->prev;
-}
-
-# トークン取得
-sub get {
-    my($this, $begin, $end, $kind) = @_;
-    $kind = '' unless $kind;
-    my $flag; $flag = 1, $kind = $1 if $kind =~ /^!(.*)$/;
-    if(defined $begin && defined $end) {
-        $begin = $this->get($begin)->next() unless 'Token' eq ref $begin;
-        $end   = $this->get($end)           unless 'Token' eq ref $end;
-        my $ret = [];
-        for(my $t = $begin; !$t->eof($end); $t = $t->next()) {
-            push @$ret, $t if $flag ? $t->value() !~ /^($kind)$/ : $t->value() =~ /^($kind)$/;
-        }
-        return $ret;
-    }
-
-    if(defined $begin) {
-        my $ret;
-        if('Token' eq ref $begin) { $ret = $begin; } else {
-            for(my($t, $i) = ($this->begin(), 0); !$t->eof(); $t = $t->next(), $i++) {
-                $ret = $t,last if $i == $begin;
-            }
-        }
-        return $ret if $flag ? $this->value() !~ /^($kind)$/ : $this->value() =~ /^($kind)$/;
-        return new Token();
-    }
-
-    my $ret = [];
-    for(my $t = $this->begin(); !$t->eof(); $t = $t->next()) {
-        push @$ret, $t if $flag ? $this->value() !~ /^($kind)$/ : $this->value() =~ /^($kind)$/;
-    }
-    return $ret;
-}
-
-# トークン文字列取得
-sub tokens {
-    my($this, $begin, $end) = @_;
-    $begin = $this->begin() unless $begin;
-    $end   = $this->end()   unless $end;
-    my $ar = [];
-    my $t = $begin;
-    push @$ar, '[BOF]' if $t->prev->bof;
-    while(!$t->eof($end)) {
-        push @$ar, $t->text() if $t->kind() !~ /^(space|comment)$/;
-        $t = $t->next;
-    }
-    push @$ar, '[EOF]' if $t->eof;
-    return join ' ', @$ar;
-}
-
-# トークン文字列取得
-sub print {
-    my($this, $begin, $end) = @_;
-    $begin = $this->begin() unless $begin;
-    $end   = $this->end()   unless $end;
-    my $ar = [];
-    my $t = $begin;
-    push @$ar, "begin:",$begin->debug, "\n";
-    push @$ar, "end:",$end->debug, "\n";
-    push @$ar, '[BOF]' if $t->prev->bof;
-    while(!$t->eof($end)) {
-        push @$ar, "'", $t->debug, "'";
-        $t = $t->next;
-    }
-    push @$ar, '[EOF]' if $t->eof;
-    push @$ar, '[END]' if $t == $end;
-    return join '', @$ar;
-}
-
-# トークン文字列取得２
-sub string {
-    my($this, $begin, $end) = @_;
-    $begin = $this->begin() unless defined $begin;
-    $end   = $this->end()   unless defined $end;
-    my $s = '';
-    for(my $t = $begin; !$t->eof($end); $t = $t->next()) {
-        my $text = $t->text(); $_ = $t->kind();
-        next if /^comment$/;
-        $text = ' ' if /^space$/;
-        $s .= $text;
-    }
-    $s =~ s/\s+/ /mg; $s =~ s/^ ?(.*?) ?$/$1/;
-    return $s;
-}
-
 #===============================================================================
 package LexicalAnalyzer;
 
+BEGIN {
+    unshift @INC, $0 =~ /^(.*?)[^\/]+$/;
+    unshift @INC, readlink($0) =~ /^(.*?)[^\/]+$/ if -l $0;
+}
+
 use strict;
 use warnings;
 use utf8;
+use TokenAnalyzer;
 
-use base 'TokenHeadder';
+use base 'TokenAnalyzer';
 
 # レキシカルアナライザ
 sub new {
     my($this, $params) = @_;
-    $this = bless new TokenHeadder($params), $this;
+    $this = bless new TokenAnalyzer($params), $this;
     if($this->{file}) {
         use FileHandle;
         $this->debug("Read:$this->{file}");
 
         my $fh = new FileHandle($this->{file}, 'r') or die "$this->{file} file open error:$!\n";
-        $fh->binmode();
+        $fh->binmode;
         my $code = '';
         $code .= $_ while <$fh>;
-        $fh->close();
+        $fh->close;
 
         use Encode;
         use Encode::Guess qw/sjis euc-jp 7bit-jis/;
@@ -289,15 +37,15 @@ sub new {
 
         $this->{code} = $decoder->decode($code);
     }
-    $this->Analyze();
-    $this->setLine();
+    $this->Analyze;
+    $this->setLine;
 
-#$this->debug("KIND:".$this->{end}->kind());
-#$this->debug("begin:$this->{begin},prv:$this->{begin}->prev(),nxt:$this->{begin}->next()");
-#for(my $t = $this->begin(); !$t->eof(); $t = $t->next()) {
-#	$this->debug("$t:$t->kind():$t->text() ");
+#$this->debug("KIND:".$this->{end}->kind);
+#$this->debug("begin:$this->{begin},prv:$this->{begin}->prev,nxt:$this->{begin}->next");
+#for(my $t = $this->begin; !$t->eof; $t = $t->next) {
+#	$this->debug("$t:$t->kind:$t->text ");
 #}
-#$this->debug("end:$this->{end},prv:$this->{end}->prev(),nxt:$this->{end}->next()");
+#$this->debug("end:$this->{end},prv:$this->{end}->prev,nxt:$this->{end}->next");
 #exit;
 
     delete $this->{code};
@@ -323,7 +71,7 @@ sub Analyze {
     for(my $i = 0; $i < @$code; $i++) {
         my $redo;
         $_ = $code->[$i];
-        $t->text($t->text().$_);
+        $t->text($t->text.$_);
         unless($state) {
             if(/[$op->[0]]/) { $state = 'op'; } # オペレータ
             elsif(/\d/) { $state = 'number'; }  # 数字
@@ -369,7 +117,7 @@ sub Analyze {
         $t->kind($state) if /^$/;
         if(/\012|\015/) {
             $t->kind($state =~ /^(.+)_/ ? $1 : $state);
-            $t->text(substr $t->text(), 0, length($t->text()) - 1);
+            $t->text(substr $t->text, 0, length($t->text) - 1);
             $t->{text} =~ s/\t/    /gm if $t->value =~ /^space_.*\t/;
             $t->{text} =~ s/　/  /gm   if $t->value =~ /^space_.*　/;
             $this->end->add($t) unless $t->text eq '';
@@ -381,9 +129,9 @@ sub Analyze {
                  }
              }
             $i++ if /\015/ && $code->[$i+1] =~ /\012/;
-        } elsif($t->kind()) {
-            $t->kind($1) if $t->kind() =~ /^(.+)_/;
-            $t->text(substr $t->text(), 0, length($t->text()) - 1) if $redo;
+        } elsif($t->kind) {
+            $t->kind($1) if $t->kind =~ /^(.+)_/;
+            $t->text(substr $t->text, 0, length($t->text) - 1) if $redo;
             $t->{text} =~ s/\t/    /gm if $t->value =~ /^space_.*\t/;
             $t->{text} =~ s/　/  /gm   if $t->value =~ /^space_.*　/;
             $this->end->add($t) unless $t->text eq '';
@@ -415,21 +163,21 @@ sub setLine {
 sub find_define {
     my($this, $name) = @_;
     my $ret = [];
-#my $t = $this->{begin};print("{begin} $t->line():prev=".$t->prev()."/next=".$t->next().":".$t->kind()."=>".$t->text().":".$t->eof()."\n");
-#   $t = $this->begin();print("begin() $t->line():prev=".$t->prev()."/next=".$t->next().":".$t->kind()."=>".$t->text().":".$t->eof()."\n");
-    for(my $t = $this->begin(); !$t->eof(); $t = $t->next()) {
-#print("$t->line():".$t->prev()."/".$t->next().":".$t->kind()."=>".$t->text()."\n");
-        next unless $t->kind() eq 'ident' && $t->text() eq $name;
+#my $t = $this->{begin};print("{begin} $t->line:prev=".$t->prev."/next=".$t->next.":".$t->kind."=>".$t->text.":".$t->eof."\n");
+#   $t = $this->begin;print("begin() $t->line:prev=".$t->prev."/next=".$t->next.":".$t->kind."=>".$t->text.":".$t->eof."\n");
+    for(my $t = $this->begin; !$t->eof; $t = $t->next) {
+#print("$t->line:".$t->prev."/".$t->next.":".$t->kind."=>".$t->text."\n");
+        next unless $t->kind eq 'ident' && $t->text eq $name;
 
-        my $debug = "[Find] (" . $t->line() . ") ".$t->text();
+        my $debug = "[Find] (" . $t->line . ") ".$t->text;
 
         my $def;                # 宣言かどうか
         my $count = 0;          # テンプレート用カウンタ
         my $cls;
         my($begin, $end) = ($t, $t);
-        while(!$begin->bof()) {
-            $begin = $begin->prev();
-            $_ = $begin->value();
+        while(!$begin->bof) {
+            $begin = $begin->prev;
+            $_ = $begin->value;
             next if /^(space_.*|comment_.*|op_[\*&]+)$/;
             $cls = 1,next if /^op_::$/;
             $def = 1,next if /^ident_/ && !$cls;
@@ -440,25 +188,25 @@ sub find_define {
             last unless $count > 0 && /^(number_.*|op_,)$/;
         }
         if($def && !$count) {
-            while(!$end->eof()) {
-                $end = $end->next();
-                $_ = $end->value();
+            while(!$end->eof) {
+                $end = $end->next;
+                $_ = $end->value;
                 next if /^(space|comment)_/;
                 $count++,next if $_ eq 'op_(';
                 if($_ eq 'op_)') {
                     $count--;
                     last if $count < 0;
-                    $end = $end->next(),last unless $count;
+                    $end = $end->next,last unless $count;
                     next;
                 }
                 last if /^op_[\{;]$/;
             }
         }
         if($def && !$count) {
-            $begin = $begin->next();
-            $begin = $begin->next() while $begin->kind() =~ /^(space|comment)$/;
-            $end   = $end->prev();
-            $end   = $end->prev()   while $end->kind()   =~ /^(space|comment)$/;
+            $begin = $begin->next;
+            $begin = $begin->next while $begin->kind =~ /^(space|comment)$/;
+            $end   = $end->prev;
+            $end   = $end->prev   while $end->kind   =~ /^(space|comment)$/;
             push @$ret, {begin=>$begin, end=>$end, this=>$t};
 
             $debug .= ' <HIT> ' . $this->tokens($begin, $end) if $this->{debug};
@@ -586,8 +334,6 @@ sub parse {
 
         # アクセスマーク
         if(/_(private|protected|public)$/) {
-            #$next->delete() if $next->value() =~ /^op_:$/;
-            #$t->delete();
             if(grep{$_->kind eq 'class'} @$token) { $req = 'ident_' }
             elsif(grep{$_ ne $t} @{$t->{token}}) { parse_error($t) }
         }
@@ -627,16 +373,16 @@ sub parse {
     # ディレクティブ
     elsif($_ eq 'op_#' && $next->value =~ /^ident_($directive_reg)$/) {
         $t->text("#$1"); $t->kind('directive');
-        $next->delete();
+        $next->delete;
         # TODO プリプロセッサ用処理
         $t = $t->next("space_\n");
         $t->{token} = [];
     }
     # :: オペレータは周りのidentを巻き込んで大きなidentにまとめます
     elsif(/^op_::$/) {
-        if($next->kind() eq 'ident') {
+        if($next->kind eq 'ident') {
             $t->text('::' . $next->text);
-            $next->delete();
+            $next->delete;
         } else { parse_error($t); }
         $t->kind('ident');
     }
@@ -669,7 +415,7 @@ sub parse {
             push @{$t->{class}}, @$class if 'ARRAY' eq ref $class;
         }
 #print "token($t->{line}:" .$t->value. "~$last):". join(' ', map{$_->text} @{$t->{class}->[0]->{token}}). "\n" if 'ARRAY' eq ref $t->{class} && 'ARRAY'eq ref $t->{class}->[0]->{token};
-        while(!$t->eof() && $t->value ne $last) {
+        while(!$t->eof && $t->value ne $last) {
             no warnings 'recursion';
             $t = parse($t);
         }
@@ -682,7 +428,7 @@ sub parse {
     elsif($_ eq 'op_<') {
         my $bk = $t;
 #print "<token($t->{line}:" .$t->value."\n";
-        while(!$t->eof()) {
+        while(!$t->eof) {
             no warnings 'recursion';
             $t = parse($t);
             last if $t->value =~ /^op_([^,\*&]||::)/
@@ -733,7 +479,7 @@ sub parse {
             if($next->value eq 'op_(') {
                 $t->kind('method');
                 # ただし、methodに所属している場合の、define,method,(の順は、クラスのインスタンス化なのでvaliableです。
-                if($prev->kind() eq 'define' && 'ARRAY' eq $t->{class} && $t->{class}->[0]->{type} eq 'method') {
+                if($prev->kind eq 'define' && 'ARRAY' eq $t->{class} && $t->{class}->[0]->{type} eq 'method') {
                     $t->kind('valiable');
                 }
             }
@@ -775,7 +521,7 @@ sub parse {
     }
     # アロー演算子の前がidentならそれは変数だ
     elsif(/^op_(->|\.)$/) {
-        if($prev->kind() eq 'ident') {
+        if($prev->kind eq 'ident') {
             $prev->kind('valiable');
         }
     }
