@@ -1,31 +1,11 @@
 <html><head>
-<title>ƒfƒBƒVƒWƒ‡ƒ“ƒe[ƒuƒ‹Œ”ƒJƒEƒ“ƒgƒc[ƒ‹</title>
+<title>ï¿½fï¿½Bï¿½Vï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½eï¿½[ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Jï¿½Eï¿½ï¿½ï¿½gï¿½cï¿½[ï¿½ï¿½</title>
 <meta http-equiv="X-UA-Compatible" content="IE=10" />
-<style type="text/css">
-body {
-    font-size : 9pt;
-}
-h1 {
-    font-size : 10pt;
-}
-table {
-    border-collapse: collapse;
-}
-th, td {
-    border: 1px solid gray;
-    white-space: nowrap;
-}
-thead {
-    background-color: LightGreen;
-}
-tfoot {
-    background-color: Pink;
-}
-</style>
-<script type="text/javascript" src="js/Utility.js"></script>
-<script type="text/javascript" src="js/TableOperation.js"></script>
-<script type="text/javascript" src="js/Connection.js"></script>
-<script type="text/javascript" src="js/FileHandle.js"></script>
+<link rel="stylesheet" href="css/base.css">
+<script type="text/javascript" src="js/Utility.js" />
+<script type="text/javascript" src="js/TableOperation.js" />
+<script type="text/javascript" src="js/Connection.js" />
+<script type="text/javascript" src="js/FileHandle.js" />
 <script type="text/javascript"><!--
 
 var fs = new ActiveXObject("Scripting.FileSystemObject");
@@ -39,8 +19,8 @@ function Execute(path, flag) {
 	document.getElementById('result').innerHTML = "";
 
 	if(document.URL.match(/^[^\/]+\/\/[\/\\]{2}/))
-		if(!confirm("ƒc[ƒ‹‚ÌÀsƒpƒX‚Éƒlƒbƒgƒ[ƒNƒpƒX‚ªw’è‚³‚ê‚Ä‚¢‚é‚½‚ßƒtƒ@ƒCƒ‹‚Ì”‚¾‚¯ƒlƒbƒgƒ[ƒNŒx‚ª”­¶‚µ‚Ü‚·B\n"
-			+ "ƒc[ƒ‹‚ğƒ[ƒJƒ‹ƒfƒBƒXƒN‚ÉƒRƒs[‚µ‚ÄÀs‚·‚é‚±‚Æ‚ğ‚¨‚·‚·‚ß‚µ‚Ü‚·B\nÀs‚µ‚Ä‚à‚æ‚ë‚µ‚¢‚Å‚·‚©H"))
+		if(!confirm("ï¿½cï¿½[ï¿½ï¿½ï¿½Ìï¿½ï¿½sï¿½pï¿½Xï¿½Éƒlï¿½bï¿½gï¿½ï¿½ï¿½[ï¿½Nï¿½pï¿½Xï¿½ï¿½ï¿½wï¿½è‚³ï¿½ï¿½Ä‚ï¿½ï¿½é‚½ï¿½ßƒtï¿½@ï¿½Cï¿½ï¿½ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½lï¿½bï¿½gï¿½ï¿½ï¿½[ï¿½Nï¿½xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½B\n"
+			+ "ï¿½cï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½Jï¿½ï¿½ï¿½fï¿½Bï¿½Xï¿½Nï¿½ÉƒRï¿½sï¿½[ï¿½ï¿½ï¿½Äï¿½ï¿½sï¿½ï¿½ï¿½é‚±ï¿½Æ‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß‚ï¿½ï¿½Ü‚ï¿½ï¿½B\nï¿½ï¿½ï¿½sï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ë‚µï¿½ï¿½ï¿½Å‚ï¿½ï¿½ï¿½ï¿½H"))
 			return;
 
 	ph.files   = [];
@@ -57,13 +37,13 @@ function Phase0() {
 	var em = new Enumerator(folder.Files);
 	for(em.moveFirst(); !em.atEnd(); em.moveNext()) {
 		var file = em.item().Name;
-		if(!file.match(/\.xlsx?$/))           { info('<font color="blue">Excelƒtƒ@ƒCƒ‹‚Å‚Í‚ ‚è‚Ü‚¹‚ñBƒXƒLƒbƒv‚µ‚Ü‚·</font>:' + file); continue; }
-		if(!file.match(/^[\w\-]+_(.+)_’P‘Ì/)) { info('<font color="blue">’P‘ÌŒ±€–Ú‚Å‚Í‚ ‚è‚Ü‚¹‚ñBƒXƒLƒbƒv‚µ‚Ü‚·</font>:' + file);  continue; }
+		if(!file.match(/\.xlsx?$/))           { info('<font color="blue">Excelï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Å‚Í‚ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½Bï¿½Xï¿½Lï¿½bï¿½vï¿½ï¿½ï¿½Ü‚ï¿½</font>:' + file); continue; }
+		if(!file.match(/^[\w\-]+_(.+)_ï¿½Pï¿½ï¿½/)) { info('<font color="blue">ï¿½Pï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú‚Å‚Í‚ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½Bï¿½Xï¿½Lï¿½bï¿½vï¿½ï¿½ï¿½Ü‚ï¿½</font>:' + file);  continue; }
 		ph.files.push({
 			path   : ph.Folders[0],
 			file   : file,
 			name   : RegExp.$1,
-			service: file.match(/iƒT[ƒrƒXj/)
+			service: file.match(/ï¿½iï¿½Tï¿½[ï¿½rï¿½Xï¿½j/)
 		});
 	}
 	em = null;
@@ -77,9 +57,9 @@ function Phase0() {
 	ph.Folders.shift();
 
 	var p = -1;
-	if(ph.Folders.length > 0)    { p = 0; info('ƒTƒuƒtƒHƒ‹ƒ_‚ğŒŸõ‚µ‚Ä‚¢‚Ü‚·:' + ph.Folders[0]); }
+	if(ph.Folders.length > 0)    { p = 0; info('ï¿½Tï¿½uï¿½tï¿½Hï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½Ü‚ï¿½:' + ph.Folders[0]); }
 	else if(ph.files.length > 0) { p = 1; ph.file  = 0; }
-	else info("<font color='red'>‘ÎÛ‚Ìƒtƒ@ƒCƒ‹‚ªŒ©“–‚½‚è‚Ü‚¹‚ñ‚Å‚µ‚½BƒpƒX‚ğŒ©’¼‚µ‚Ä‚­‚¾‚³‚¢</font>");
+	else info("<font color='red'>ï¿½ÎÛ‚Ìƒtï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½Å‚ï¿½ï¿½ï¿½ï¿½Bï¿½pï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</font>");
 	if(p >= 0) setTimeout("Phase" + p + "()", TIMEOUT);
 }
 
@@ -88,7 +68,7 @@ function Phase1() {
 	if(!('file' in ph)) return;
 
 	ph.name    = ph.files[ph.file].name;
-	info("ƒtƒ@ƒCƒ‹F" + ph.files[ph.file].file + " (" + (ph.files[ph.file].service ? "ƒT[ƒrƒX‚Ì’P‘ÌŒ±¬Ñ•\" : "ƒfƒBƒVƒWƒ‡ƒ“ƒe[ƒuƒ‹") + "‚ğ‰ğÍ‚µ‚Ü‚·)");
+	info("ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½F" + ph.files[ph.file].file + " (" + (ph.files[ph.file].service ? "ï¿½Tï¿½[ï¿½rï¿½Xï¿½Ì’Pï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ•\" : "ï¿½fï¿½Bï¿½Vï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½eï¿½[ï¿½uï¿½ï¿½") + "ï¿½ï¿½ï¿½ï¿½Í‚ï¿½ï¿½Ü‚ï¿½)");
 
 	ph.cn = new Connection(MSExcel12_ODBC_Driver, {
 		file:ph.files[ph.file].path + "/" + ph.files[ph.file].file,
@@ -111,7 +91,7 @@ function Phase2() {
 
 	if(table && table.match(/^'?[\w\-]+\$'?$/)) {
 		var ret = ph.files[ph.file].service ? count_service() : count_class();
-		if(!ret) info('<font color="brue">Œ±€–Ú‚ªæ“¾‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½</font> : '+ ph.files[ph.file].file + "->" + table)
+		if(!ret) info('<font color="brue">ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú‚ï¿½ï¿½æ“¾ï¿½Å‚ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½Å‚ï¿½ï¿½ï¿½</font> : '+ ph.files[ph.file].file + "->" + table)
 	}
 	
 	var func = 'Phase';
@@ -129,7 +109,7 @@ function Phase2() {
 	setTimeout(func + '()', TIMEOUT);
 }
 
-//ƒNƒ‰ƒX===========================================================================================================
+//ï¿½Nï¿½ï¿½ï¿½X===========================================================================================================
 function count_class() {
 	var file  = ph.files[ph.file].file;
 	var cn = ph.cn;
@@ -138,9 +118,9 @@ function count_class() {
 	if(!(file in ph.count))
 		ph.count[file] = {
 			name	: ph.name,
-			Œ”	: 0,
-			Ï		: 0,
-			À{	: 0,
+			ï¿½ï¿½ï¿½ï¿½	: 0,
+			ï¿½ï¿½		: 0,
+			ï¿½ï¿½ï¿½{	: 0,
 			OK		: 0,
 			NG		: 0,
 			date	: {},
@@ -149,26 +129,26 @@ function count_class() {
 	var count = ph.count[file]
 	count.sheet.push({});
 
-	// ƒNƒ‰ƒX•¨—–¼
-	cn.select("[F3] FROM [" + table + "] WHERE " + cn.row(table, "B") + " LIKE 'ƒNƒ‰ƒX•¨—–¼'");
+	// ï¿½Nï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	cn.select("[F3] FROM [" + table + "] WHERE " + cn.row(table, "B") + " LIKE 'ï¿½Nï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'");
 	if(!cn.eof()) count.value = cn.item("F3");
 	cn.close();
 
-	// ƒƒ\ƒbƒh•¨—–¼
-	var sql = cn.row(table, "R5") + " FROM [" + table + "] WHERE " + cn.row(table, "B") + " LIKE 'ƒƒ\ƒbƒh•¨—–¼'";
+	// ï¿½ï¿½ï¿½\ï¿½bï¿½hï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	var sql = cn.row(table, "R5") + " FROM [" + table + "] WHERE " + cn.row(table, "B") + " LIKE 'ï¿½ï¿½ï¿½\ï¿½bï¿½hï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'";
 	cn.select(sql);
 	if(!cn.eof()) count.sheet[count.sheet.length - 1].value = cn.item('R5');
 	cn.close();
 
-	// ƒƒ\ƒbƒh˜_—–¼
-	var sql = cn.row(table, "F6") + " FROM [" + table + "] WHERE " + cn.row(table, "R7") + " LIKE 'ƒƒ\ƒbƒh˜_—–¼'";
+	// ï¿½ï¿½ï¿½\ï¿½bï¿½hï¿½_ï¿½ï¿½ï¿½ï¿½
+	var sql = cn.row(table, "F6") + " FROM [" + table + "] WHERE " + cn.row(table, "R7") + " LIKE 'ï¿½ï¿½ï¿½\ï¿½bï¿½hï¿½_ï¿½ï¿½ï¿½ï¿½'";
 	cn.select(sql);
 	if(!cn.eof()) count.sheet[count.sheet.length - 1].name = cn.item('R8');
 	cn.close();
 
-	// Œ±€–Ú‚Ìæ“¾
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú‚Ìæ“¾
 	var area = [];
-	cn.select("* FROM [" + table + "] WHERE " + cn.row(table, "R7") + " LIKE '%Œ±€–Ú‚h‚c%'");
+	cn.select("* FROM [" + table + "] WHERE " + cn.row(table, "R7") + " LIKE '%ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú‚hï¿½c%'");
 	if(!cn.eof()) {
 		for(var i = 0; i < cn.count(); i++) {
 			var value = cn.item(i);
@@ -181,18 +161,18 @@ function count_class() {
 
 	var testArea = []; for(var i in area) testArea.push('[' + area[i].name + ']'); testArea = testArea.join(', ');
 
-	// ƒeƒXƒgŠÏ“_€–Ú‚Ìs‚É"Ï"‚ª‚ ‚éê‡‚ÍWŒv‘ÎÛŠO‚Æ‚·‚éB
-	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "B") + " LIKE 'ƒeƒXƒgŠÏ“_€–Ú'");
+	// ï¿½eï¿½Xï¿½gï¿½Ï“_ï¿½ï¿½ï¿½Ú‚Ìsï¿½ï¿½"ï¿½ï¿½"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê‡ï¿½ÍWï¿½vï¿½ÎÛŠOï¿½Æ‚ï¿½ï¿½ï¿½B
+	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "B") + " LIKE 'ï¿½eï¿½Xï¿½gï¿½Ï“_ï¿½ï¿½ï¿½ï¿½'");
 	if(!cn.eof()) {
 		for (var i = 0; i < cn.count(); i++) {
-			var value = cn.item(i); if(value != null && value.match(/^Ï$/)) area[i].inv = 1;
+			var value = cn.item(i); if(value != null && value.match(/^ï¿½ï¿½$/)) area[i].inv = 1;
 		}
 	}
 	cn.close();
 
-	// Œ‹‰Ê—“‚Ìƒ`ƒFƒbƒN(OK‚©”Û‚©)
+	// ï¿½ï¿½ï¿½Ê—ï¿½ï¿½Ìƒ`ï¿½Fï¿½bï¿½N(OKï¿½ï¿½ï¿½Û‚ï¿½)
 	sql = []; for(var i = 2; i < 7; i++) sql.push(cn.row(table, 'R' + i) + " IS NULL");
-	cn.select(testArea + " FROM [" + table + "] WHERE " + sql.join(" AND ") + " AND "+ cn.row(table, 'R7') + " LIKE 'Œ‹‰Ê'");
+	cn.select(testArea + " FROM [" + table + "] WHERE " + sql.join(" AND ") + " AND "+ cn.row(table, 'R7') + " LIKE 'ï¿½ï¿½ï¿½ï¿½'");
 	if(!cn.eof()) {
 		for (var i = 0; i < cn.count(); i++) {
 			var value = cn.item(i); if(value == null || area[i].inv) continue;
@@ -201,10 +181,10 @@ function count_class() {
 	}
 	cn.close();
 	
-	// À{“ú‚Ìæ“¾
+	// ï¿½ï¿½ï¿½{ï¿½ï¿½ï¿½Ìæ“¾
 	var flag = false;
 	var sql = []; for(var i in area) sql.push("[" + area[i].name + "] IS NOT NULL");
-	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "G") + " LIKE 'À{“ú' AND " + sql.join(' AND '));
+	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "G") + " LIKE 'ï¿½ï¿½ï¿½{ï¿½ï¿½' AND " + sql.join(' AND '));
 	if(!cn.eof()) {
 		for(var i = 0; i < cn.count(); i++) {
 			var date = cn.item(i); if(!date && area[i].inv) continue;
@@ -216,7 +196,7 @@ function count_class() {
 	}
 	cn.close();
 	
-	// À{“ú‚Ìæ“¾‚»‚Ì‚Q
+	// ï¿½ï¿½ï¿½{ï¿½ï¿½ï¿½Ìæ“¾ï¿½ï¿½ï¿½Ì‚Q
 	if(flag) {
 		var year = new Date().getFullYear();
 		var sql = [];
@@ -232,8 +212,8 @@ function count_class() {
 		cn.close();
 	}
 
-	// NG‚Ìæ“¾
-	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "G") + " LIKE 'áŠQ•['");
+	// NGï¿½Ìæ“¾
+	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "G") + " LIKE 'ï¿½ï¿½Qï¿½['");
 	if(!cn.eof()) {
 		for(var i = 0; i < cn.count(); i++) {
 			var value = cn.item(i); if(!value || area[i].inv) continue;
@@ -252,16 +232,16 @@ function count_class() {
 		}
 	}
 	for(var i in area) {
-		count.Œ” += area[i].cnt - area[i].inv;
-		count.Ï   += area[i].inv;
-		count.À{ += area[i].exe;
+		count.ï¿½ï¿½ï¿½ï¿½ += area[i].cnt - area[i].inv;
+		count.ï¿½ï¿½   += area[i].inv;
+		count.ï¿½ï¿½ï¿½{ += area[i].exe;
 		count.OK   += area[i].ok;
 		count.NG   += area[i].ng;
 		
 		if('date' in area[i]) {
 			var date = area[i].date;
-			if(!(date in count.date)) count.date[date] = { À{ : 0, OK : 0, NG : 0 };
-			count.date[date].À{ += area[i].exe;
+			if(!(date in count.date)) count.date[date] = { ï¿½ï¿½ï¿½{ : 0, OK : 0, NG : 0 };
+			count.date[date].ï¿½ï¿½ï¿½{ += area[i].exe;
 			count.date[date].OK   += area[i].ok;
 			count.date[date].NG   += area[i].ng;
 		}
@@ -271,7 +251,7 @@ var s = [count.name]; for(var d in count.date) s.push(d); trace('DATE:'.bold() +
 	return true;
 }
 
-//ƒT[ƒrƒX===========================================================================================================
+//ï¿½Tï¿½[ï¿½rï¿½X===========================================================================================================
 function count_service() {
 	var file = ph.files[ph.file].file;
 	var cn = ph.cn;
@@ -280,19 +260,19 @@ function count_service() {
 	
 	if(!(name in ph.count))
 		ph.count[name] = {
-			name	: ph.name + '(ƒT[ƒrƒX)',
-			Œ”	: 0,
-			Ï		: 0,
-			À{	: 0,
+			name	: ph.name + '(ï¿½Tï¿½[ï¿½rï¿½X)',
+			ï¿½ï¿½ï¿½ï¿½	: 0,
+			ï¿½ï¿½		: 0,
+			ï¿½ï¿½ï¿½{	: 0,
 			OK		: 0,
 			NG		: 0,
 			date	: {},
 			sheet	: []
 		};
 	var count = ph.count[name];
-	var cnt = {Œ” : 0, Ï : 0, À{ : 0, OK : 0, NG : 0};
+	var cnt = {ï¿½ï¿½ï¿½ï¿½ : 0, ï¿½ï¿½ : 0, ï¿½ï¿½ï¿½{ : 0, OK : 0, NG : 0};
 
-	// ƒNƒ‰ƒX•¨—–¼
+	// ï¿½Nï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	count.value = table.replace(/['$]/, "");	//'
 	
 	count.sheet.push({});
@@ -302,7 +282,7 @@ function count_service() {
 trace(cn.item("B")+","+cn.item("I")+","+cn.item("R11")+","+cn.item("R13"));
 		if(!cn.item("B").match(/^\d+$/) || !cn.item("I")) continue;
 
-		count.Œ”++; flag = true;
+		count.ï¿½ï¿½ï¿½ï¿½++; flag = true;
 		var exe = exe, ok = 0, ng = 0, date, ng_date;
 		for(var i = 0; i < 3; i++) {
 			if(ok) continue;
@@ -314,24 +294,24 @@ trace(cn.item("B")+","+cn.item("I")+","+cn.item("R11")+","+cn.item("R13"));
 			if(d != null && !date) date = new Date(d).ToString();
 
 			exe = 1;
-			if(value.match(/›/)) ok = 1;
-			if(value.match(/~/)) ng = 1;
+			if(value.match(/ï¿½ï¿½/)) ok = 1;
+			if(value.match(/ï¿½~/)) ng = 1;
 			
 			if(d != null && ng) ng_date = new Date(d).ToString();
 		}
 		
 		
-		count.À{ += exe;
+		count.ï¿½ï¿½ï¿½{ += exe;
 		count.OK   += ok;
 		count.NG   += ng;
 		
 		if(date) {
-			if(!(   date in count.date)) count.date[   date] = {À{ : 0, OK : 0, NG : 0};
-			count.date[date].À{ += exe;
+			if(!(   date in count.date)) count.date[   date] = {ï¿½ï¿½ï¿½{ : 0, OK : 0, NG : 0};
+			count.date[date].ï¿½ï¿½ï¿½{ += exe;
 			count.date[date].OK   += ok;
 		}
 		if(ng_date) {
-			if(!(ng_date in count.date)) count.date[ng_date] = {À{ : 0, OK : 0, NG : 0};
+			if(!(ng_date in count.date)) count.date[ng_date] = {ï¿½ï¿½ï¿½{ : 0, OK : 0, NG : 0};
 			count.date[ng_date].NG += ng;
 		}
 	}
@@ -341,11 +321,11 @@ var s = [count.name]; for(var d in count.date) s.push(d); trace('DATE:'.bold() +
 	return flag;
 }
 
-//HTML‚Ì\¬====================================================================================================================
+//HTMLï¿½Ì\ï¿½ï¿½====================================================================================================================
 function Phase3() {
 
 for(var id in ph.count) { var s = [];  for(var d in ph.count[id].date) s.push(d); trace('DATE'.bold() + ph.count[id].name + ',' + s.join(',')) }
-	var sum = { Œ” : 0, Ï : 0, À{ : 0, OK : 0, NG : 0 };
+	var sum = { ï¿½ï¿½ï¿½ï¿½ : 0, ï¿½ï¿½ : 0, ï¿½ï¿½ï¿½{ : 0, OK : 0, NG : 0 };
 
 	var dateList = [];
 	var dateCount = [];
@@ -361,7 +341,7 @@ for(var id in ph.count) { var s = [];  for(var d in ph.count[id].date) s.push(d)
 	}
 	for(var date = new Date(min), i = 0; date <= max; date.setDate(date.getDate() + 1), i++) {
 		dateList[i] = date.ToString();
-		dateCount[i] = { À{:0, OK:0 };
+		dateCount[i] = { ï¿½ï¿½ï¿½{:0, OK:0 };
 	}
 trace('DATE'.bold() + dateList.join(","));
 
@@ -369,7 +349,7 @@ trace('DATE'.bold() + dateList.join(","));
 	var thead = document.createElement('thead');
 	var tr = document.createElement('TR');
 	tr.style.fontSize = 'xx-small';
-	var ar = ['ƒNƒ‰ƒX', 'Œ”', 'À{', 'OK', 'NG', '‘ÎÛŠO'];
+	var ar = ['ï¿½Nï¿½ï¿½ï¿½X', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½{', 'OK', 'NG', 'ï¿½ÎÛŠO'];
 	for(var i in ar) {
 		var th = document.createElement('TH');
 		if(i > 0) {
@@ -408,9 +388,9 @@ trace('DATE'.bold() + dateList.join(","));
 	for(var i in key) {
 
 		var obj = ph.count[key[i]];
-		sum.Œ” += obj.Œ”;
-		sum.Ï   += obj.Ï;
-		sum.À{ += obj.À{;
+		sum.ï¿½ï¿½ï¿½ï¿½ += obj.ï¿½ï¿½ï¿½ï¿½;
+		sum.ï¿½ï¿½   += obj.ï¿½ï¿½;
+		sum.ï¿½ï¿½ï¿½{ += obj.ï¿½ï¿½ï¿½{;
 		sum.OK   += obj.OK;
 		sum.NG   += obj.NG;
 
@@ -421,7 +401,7 @@ trace('DATE'.bold() + dateList.join(","));
 		if(obj.value) td.innerHTML += br + "(" + obj.value + ")";
 		tr.appendChild(td);
 
-		var ar = ['Œ”', 'À{', 'OK', 'NG', 'Ï'];
+		var ar = ['ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½{', 'OK', 'NG', 'ï¿½ï¿½'];
 		for(var j in ar) {
 			var td = document.createElement('TD');
 			td.align = 'right'; td.rowSpan = 2;
@@ -429,7 +409,7 @@ trace('DATE'.bold() + dateList.join(","));
 			tr.appendChild(td);
 		}
 
-		var ar = ['À{', 'Š®—¹'];
+		var ar = ['ï¿½ï¿½ï¿½{', 'ï¿½ï¿½ï¿½ï¿½'];
 		for(var j in ar) {
 			var td = document.createElement('TD');
 			td.style['font-size'] = 'x-small';
@@ -460,8 +440,8 @@ trace('DATE'.bold() + dateList.join(","));
 	var tfoot = document.createElement('tfoot');
 	var tr = document.createElement('TR');
 	var td = document.createElement('TD');
-	td.align = 'left'; td.rowSpan = 2; td.innerHTML = '‡Œv'; tr.appendChild(td);
-	var ar = ['Œ”', 'À{', 'OK', 'NG', 'Ï'];
+	td.align = 'left'; td.rowSpan = 2; td.innerHTML = 'ï¿½ï¿½ï¿½v'; tr.appendChild(td);
+	var ar = ['ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½{', 'OK', 'NG', 'ï¿½ï¿½'];
 	for(var j in ar) {
 		var td = document.createElement('TD');
 		td.align = 'right'; td.rowSpan = 2;
@@ -469,7 +449,7 @@ trace('DATE'.bold() + dateList.join(","));
 		tr.appendChild(td);
 	}
 
-	var ar = ['À{', 'Š®—¹'];
+	var ar = ['ï¿½ï¿½ï¿½{', 'ï¿½ï¿½ï¿½ï¿½'];
 	for(var j in ar) {
 		var td = document.createElement('TD');
 		td.style.fontSize = 'x-small';
@@ -481,7 +461,7 @@ trace('DATE'.bold() + dateList.join(","));
 			var td = document.createElement('TD');
 			td.style['font-size'] = 'x-small';
 			td.align = 'right';
-			if(dateCount[d].OK || dateCount[d].À{) td.innerHTML = dateCount[d][a];
+			if(dateCount[d].OK || dateCount[d].ï¿½ï¿½ï¿½{) td.innerHTML = dateCount[d][a];
 			else td.innerHTML = sp;
 			tr.appendChild(td);
 		}
@@ -502,13 +482,13 @@ trace('DATE'.bold() + dateList.join(","));
 </head><body>
 
 <form name="form">
-	<input type="text" name="begin" size=14 length=10>`<input type="text" name="end" size=14 length=10><input type="text" name="debug" size=1>
+	<input type="text" name="begin" size=14 length=10>ï¿½`<input type="text" name="end" size=14 length=10><input type="text" name="debug" size=1>
 	<br>
-	ŒŸõƒpƒX <span id="ini"></span><br>
+	ï¿½ï¿½ï¿½ï¿½ï¿½pï¿½X <span id="ini"></span><br>
 	<div style="font-size:x-small">
-		<input type="checkbox" name="subfolder" style="width:10px;height:10px;vertical-align:middle;"> ƒTƒuƒtƒHƒ‹ƒ_‚àŒŸõ‚·‚é
+		<input type="checkbox" name="subfolder" style="width:10px;height:10px;vertical-align:middle;"> ï¿½Tï¿½uï¿½tï¿½Hï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		&nbsp;
-		<input type="button" name="execute" value=" Às ">
+		<input type="button" name="execute" value=" ï¿½ï¿½ï¿½s ">
 	</div>
 </form>
 
@@ -517,7 +497,7 @@ trace('DATE'.bold() + dateList.join(","));
 </body><script><!--
 
 //====================================================================================================================
-// “ú•t‚Ìİ’è
+// ï¿½ï¿½ï¿½tï¿½Ìİ’ï¿½
 d = new Date();
 document.form.end.value = d.ToString();
 d.setDate(d.getDate()+1); d.setMonth(d.getMonth()-1);
@@ -525,7 +505,7 @@ document.form.begin.value = d.ToString();
 
 var fileField = new CreateFileField('ini', GetFileName().replace(/\.[^\.]*$/, '.ini'));
 
-//ƒCƒxƒ“ƒg’è‹`====================================================================================================================
+//ï¿½Cï¿½xï¿½ï¿½ï¿½gï¿½ï¿½`====================================================================================================================
 document.form.execute.onclick = function() {
 	DEBUG = parseInt('0'+document.form.debug.value);
 	this.disabled = true;

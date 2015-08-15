@@ -1,32 +1,12 @@
 <html><head>
-<title>ƒT[ƒrƒXƒeƒXƒgƒwƒ‹ƒp</title>
+<title>ï¿½Tï¿½[ï¿½rï¿½Xï¿½eï¿½Xï¿½gï¿½wï¿½ï¿½ï¿½p</title>
 <meta http-equiv="X-UA-Compatible" content="IE=10" />
-<style type="text/css">
-body {
-	font-size : 9pt;
-}
-h1 {
-	font-size : 10pt;
-}
-table {
-	border-collapse: collapse;
-}
-th, td {
-	border: 1px solid gray;
-	white-space: nowrap;
-}
-thead {
-	background-color: LightGreen;
-}
-tfoot {
-	background-color: Pink;
-}
-</style>
-<script type="text/javascript" src="js/Utility.js"></script>
-<script type="text/javascript" src="js/TableOperation.js"></script>
-<script type="text/javascript" src="js/Connection.js"></script>
-<script type="text/javascript" src="js/FileHandle.js"></script>
-<script type="text/javascript" src="js/LexicalAnalyzer.js"></script>
+<link rel="stylesheet" href="css/base.css">
+<script type="text/javascript" src="js/Utility.js" />
+<script type="text/javascript" src="js/TableOperation.js" />
+<script type="text/javascript" src="js/Connection.js" />
+<script type="text/javascript" src="js/FileHandle.js" />
+<script type="text/javascript" src="js/LexicalAnalyzer.js" />
 <script type="text/javascript"><!--
 
 var fs = new ActiveXObject("Scripting.FileSystemObject");
@@ -39,8 +19,8 @@ var DATA = [];
 function Execute(input, output) {
 	document.getElementById('result').innerHTML = "";
 	clearMessage();
-	if(!input.match(/\.xlsx?$/)) { info('Excelƒtƒ@ƒCƒ‹‚Å‚Í‚ ‚è‚Ü‚¹‚ñ:'.bold() + input); return; }
-	if(!fs.FileExists(input)) { info('ƒtƒ@ƒCƒ‹‚ª‚ ‚è‚Ü‚¹‚ñ:'.bold() + input); return; }
+	if(!input.match(/\.xlsx?$/)) { info('Excelï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Å‚Í‚ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½:'.bold() + input); return; }
+	if(!fs.FileExists(input)) { info('ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½:'.bold() + input); return; }
 
 	var cn = new Connection(MSExcel12_OLE_Driver, {'file':input, readonly:1});
 	if(!cn.exists) return;
@@ -49,19 +29,19 @@ function Execute(input, output) {
 	line_count = 0;
 	var table = '';
 	for(var i in cn.table) {
-		if(cn.table[i].match(/ˆ—à–¾/)) { table = cn.table[i]; break; }
+		if(cn.table[i].match(/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½/)) { table = cn.table[i]; break; }
 	}
 	if(table.length == 0) {
-		info('ˆ—à–¾ƒ^ƒu‚ª‚İ‚Â‚Ü‚è‚Ü‚¹‚ñ‚Å‚µ‚½:'.bold() + input+ br + 'table=' + cn.table.join(','));
+		info('ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½^ï¿½uï¿½ï¿½ï¿½İ‚Â‚Ü‚ï¿½Ü‚ï¿½ï¿½ï¿½Å‚ï¿½ï¿½ï¿½:'.bold() + input+ br + 'table=' + cn.table.join(','));
 		return;
 	}
 	//==========================================================================
-	// ƒe[ƒuƒ‹ƒwƒbƒ_‚Ì\¬
+	// ï¿½eï¿½[ï¿½uï¿½ï¿½ï¿½wï¿½bï¿½_ï¿½Ì\ï¿½ï¿½
 	//==========================================================================
 	var tbl = document.createElement('table');
 	var thd = document.createElement('thead');
 	var tr	= document.createElement('TR');
-	var head = ['‡‚','‰ÓŠ', '‘å‹æ•ª', '’†‹æ•ª', '¬‹æ•ª', '€–Ú', '“ü—Í', 'Šm”F“à—e'];
+	var head = ['ï¿½ï¿½','ï¿½Óï¿½', 'ï¿½ï¿½æ•ª', 'ï¿½ï¿½ï¿½æ•ª', 'ï¿½ï¿½ï¿½æ•ª', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½ï¿½ï¿½', 'ï¿½mï¿½Fï¿½ï¿½ï¿½e'];
 	for(var i in head) {
 		var th = document.createElement('TH');
 		th.innerHTML = head[i];
@@ -71,29 +51,29 @@ function Execute(input, output) {
 	tbl.appendChild(thd);
 	
 	//==========================================================================
-	// –{‘Ì‚Ì“Ç
+	// ï¿½{ï¿½Ì‚Ì“Çï¿½
 	//==========================================================================
 	element = document.createElement('tbody');
 
 	var TYPES = {
-		'ƒGƒ“ƒeƒBƒeƒB'	: '(E)',
-		'ƒCƒxƒ“ƒg'		: '(S)',
-		'‹¤—L'			: '(Shr)',
-		'ƒƒ‚ƒŠ'		: '(M)',
-		'ƒpƒ‰ƒ[ƒ^'	: '(SG)',
-		'ƒAƒ_ƒv'		: '(SG)',
+		'ï¿½Gï¿½ï¿½ï¿½eï¿½Bï¿½eï¿½B'	: '(E)',
+		'ï¿½Cï¿½xï¿½ï¿½ï¿½g'		: '(S)',
+		'ï¿½ï¿½ï¿½L'			: '(Shr)',
+		'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'		: '(M)',
+		'ï¿½pï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½^'	: '(SG)',
+		'ï¿½Aï¿½_ï¿½v'		: '(SG)',
 		'API'			: '(API)',
-		'–ß‚è’l'		: '(R)',
-		'ƒƒO'			: '',
-		'‚È‚µ'			: ''
+		'ï¿½ß‚ï¿½l'		: '(R)',
+		'ï¿½ï¿½ï¿½O'			: '',
+		'ï¿½È‚ï¿½'			: ''
 	};
-	var head = [];	// ƒwƒbƒ_î•ñ
-	var area = {};	// ˆÊ’uî•ñ
-	var linedata = {'ˆ—–¼':''};
+	var head = [];	// ï¿½wï¿½bï¿½_ï¿½ï¿½ï¿½
+	var area = {};	// ï¿½Ê’uï¿½ï¿½ï¿½
+	var linedata = {'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½':''};
 
 	cn.select("* FROM [" + table + "A1:IV999]");
 	for(var line = 0; !cn.eof(); cn.next()) {
-		// ‚Psæ“¾
+		// ï¿½Pï¿½sï¿½æ“¾
 		var values = [];
 		for (var i = 0; i < cn.count(); i++) {
 			var text = cn.item(i);
@@ -102,15 +82,15 @@ function Execute(input, output) {
 			if(type !== 'String') text = new String(text);
 			values[i] = text.replace(/^\s*(.*?)\s*$/, function(s,p){return p});
 		}
-		if(values.join('').length == 0) continue;		// ƒf[ƒ^‚Ì‚È‚¢s‚Í”ò‚Î‚·
-		if(0 == line && !values[1].match('ˆ—–¼')) continue;		// ƒwƒbƒ_•”‚Ü‚Å”ò‚Î‚·
+		if(values.join('').length == 0) continue;		// ï¿½fï¿½[ï¿½^ï¿½Ì‚È‚ï¿½ï¿½sï¿½Í”ï¿½Î‚ï¿½
+		if(0 == line && !values[1].match('ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½')) continue;		// ï¿½wï¿½bï¿½_ï¿½ï¿½ï¿½Ü‚Å”ï¿½Î‚ï¿½
 
 trace('line=' + line + ':value=' + values.join(','));
 
 		line++;
 
 		//======================================================================
-		// ƒwƒbƒ_•”‚Ìˆ—
+		// ï¿½wï¿½bï¿½_ï¿½ï¿½ï¿½Ìï¿½ï¿½ï¿½
 		//======================================================================
 		while(line < 3) {
 			var i = line - 1, text = '';
@@ -119,9 +99,9 @@ trace('line=' + line + ':value=' + values.join(','));
 				if(values[j].length > 0) text = values[j];
 				head[i][j] = {'text': text};
 			}
-			if(line < 2) break;		// ˆês–Ú‚Íƒwƒbƒ_ƒf[ƒ^‚ğæ‚é‚¾‚¯
+			if(line < 2) break;		// ï¿½ï¿½sï¿½Ú‚Íƒwï¿½bï¿½_ï¿½fï¿½[ï¿½^ï¿½ï¿½ï¿½ï¿½é‚¾ï¿½ï¿½
 
-			// ƒZƒ‹‚Ìƒ}[ƒWî•ñ‚ğ‰¯‘ª‚·‚é
+			// ï¿½Zï¿½ï¿½ï¿½Ìƒ}ï¿½[ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			for(var i in head) {	i = parseInt(i);
 				for(var j in head[i]) {	j = parseInt(j); var obj = head[i][j];
 					if(obj.hidden) continue;
@@ -135,7 +115,7 @@ trace('line=' + line + ':value=' + values.join(','));
 				}
 			}
 trace(['[HEAD]', head]);
-			// €–Ú‚ÌˆÊ’uî•ñ‚Ìæ“¾
+			// ï¿½ï¿½ï¿½Ú‚ÌˆÊ’uï¿½ï¿½ï¿½Ìæ“¾
 			for(var j in values) {	j = parseInt(j);
 				if(head[0][j].hidden && head[1][j].hidden) continue;
 				var text = head[0][j].text + head[1][j].text;
@@ -144,7 +124,7 @@ trace(['[HEAD]', head]);
 				col = !col ? j : j + col;
 				area[text] = {'begin':j, 'end': col};
 			}
-			// ƒwƒbƒ_‚Ìã‰º‚ğ”äŠr‚µ‚Ä³‚µ‚¢ˆÊ’uî•ñ‚É‚·‚é
+			// ï¿½wï¿½bï¿½_ï¿½Ìã‰ºï¿½ï¿½ï¿½rï¿½ï¿½ï¿½Äï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê’uï¿½ï¿½ï¿½É‚ï¿½ï¿½ï¿½
 			var ar = [];
 			for(var i in area) ar.push(i);
 			ar.sort(function (a, b) { return area[a].begin - area[b].begin });
@@ -158,32 +138,32 @@ trace(['[AREA]', area]);
 		if(line < 3) continue;
 		
 		//======================================================================
-		// €–Úî•ñ‚ğæ“¾‚·‚é
+		// ï¿½ï¿½ï¿½Úï¿½ï¿½ï¿½ï¿½æ“¾ï¿½ï¿½ï¿½ï¿½
 		//======================================================================
-		// ˆ—–¼
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		//----------------------------------------------------------------------
-		var text = getCells(area['ˆ—–¼'], values);
+		var text = getCells(area['ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'], values);
 		if(text.length > 0) {
-			if(linedata['ˆ—–¼'].length > 0) Output(linedata);
-			linedata['ˆ—–¼'] = text;
-			linedata['“ü—Íí•Ê'] = ''; linedata['“ü—Í€–Ú'] = []; linedata['ˆ—€–Ú'] = '';
-			linedata['o—Íí•Ê'] = ''; linedata['o—Í€–Ú'] = []; linedata['”õl€–Ú'] = '';
+			if(linedata['ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'].length > 0) Output(linedata);
+			linedata['ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'] = text;
+			linedata['ï¿½ï¿½ï¿½Íï¿½ï¿½'] = ''; linedata['ï¿½ï¿½ï¿½Íï¿½ï¿½ï¿½'] = []; linedata['ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'] = '';
+			linedata['ï¿½oï¿½Íï¿½ï¿½'] = ''; linedata['ï¿½oï¿½Íï¿½ï¿½ï¿½'] = []; linedata['ï¿½ï¿½ï¿½lï¿½ï¿½ï¿½ï¿½'] = '';
 		}
-		// ˆ—–¼‚ª‚È‚¢ê‡‚Íˆ—‚µ‚È‚¢B
-		if(linedata['ˆ—–¼'].length == 0) continue;
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½ê‡ï¿½Íï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½B
+		if(linedata['ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'].length == 0) continue;
 
 		//----------------------------------------------------------------------
-		// ”õl
+		// ï¿½ï¿½ï¿½l
 		//----------------------------------------------------------------------
-		var text = getCells(area['”õl€–Ú'], values);
-		if(text.length > 0) linedata['”õl€–Ú'] += text;
+		var text = getCells(area['ï¿½ï¿½ï¿½lï¿½ï¿½ï¿½ï¿½'], values);
+		if(text.length > 0) linedata['ï¿½ï¿½ï¿½lï¿½ï¿½ï¿½ï¿½'] += text;
 
 		//----------------------------------------------------------------------
-		// “üo—Íƒf[ƒ^‚Ìæ“¾
+		// ï¿½ï¿½ï¿½oï¿½Íƒfï¿½[ï¿½^ï¿½Ìæ“¾
 		//----------------------------------------------------------------------
-		var ar = ['“ü—Í', 'o—Í'];
+		var ar = ['ï¿½ï¿½ï¿½ï¿½', 'ï¿½oï¿½ï¿½'];
 		for(var i in ar) {
-			var item = ar[i] + '€–Ú', kind = ar[i] + 'í•Ê';
+			var item = ar[i] + 'ï¿½ï¿½ï¿½ï¿½', kind = ar[i] + 'ï¿½ï¿½ï¿½';
 			var type = getCells(area[kind], values);
 			var t = linedata[kind];
 			if(type.length > 0) {
@@ -195,12 +175,12 @@ trace(['[AREA]', area]);
 			if(text.length > 0) linedata[item].push(text + t);
 		}
 		//----------------------------------------------------------------------
-		// ˆ—€–Ú
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		//----------------------------------------------------------------------
-		var text = getCells(area['ˆ—€–Ú'], values, "\t").replace(/\s+$/, '');
-		linedata['ˆ—€–Ú'] += text + "\n";
+		var text = getCells(area['ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'], values, "\t").replace(/\s+$/, '');
+		linedata['ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'] += text + "\n";
 	}
-	if(linedata['ˆ—–¼'].length > 0) Output(linedata);
+	if(linedata['ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'].length > 0) Output(linedata);
 
 	tbl.appendChild(element);
 	document.getElementById('result').appendChild(tbl);
@@ -229,14 +209,14 @@ function getCells(obj, val, tab) {
 //==============================================================================
 function Output(linedata) {
 
-//		text = text.replace(/\[T\.?B\.?D\].*$/, '');	// TBD‚ğÁ‚·
-	var process = linedata['ˆ—€–Ú'].replace(/\s+$/, '');
+//		text = text.replace(/\[T\.?B\.?D\].*$/, '');	// TBDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	var process = linedata['ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'].replace(/\s+$/, '');
 
-	var name = (linedata['ˆ—–¼'] + "\n" + linedata['”õl€–Ú']).replace(/\s+$/, '');
+	var name = (linedata['ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'] + "\n" + linedata['ï¿½ï¿½ï¿½lï¿½ï¿½ï¿½ï¿½']).replace(/\s+$/, '');
 
-	var input = arrayToString('“ü—Í€–Ú');
-	var result = arrayToString('o—Í€–Ú');
-	if(result.length > 0) result += '‚ªo—Í‚³‚ê‚é‚±‚Æ';
+	var input = arrayToString('ï¿½ï¿½ï¿½Íï¿½ï¿½ï¿½');
+	var result = arrayToString('ï¿½oï¿½Íï¿½ï¿½ï¿½');
+	if(result.length > 0) result += 'ï¿½ï¿½ï¿½oï¿½Í‚ï¿½ï¿½ï¿½é‚±ï¿½ï¿½';
 
 	function arrayToString(key) {
 		var ret = '';
@@ -245,11 +225,11 @@ function Output(linedata) {
 	}
 
 	var Func = [];
-	//var Func = [{'name': name, 'text': process.replace(/\t/gm, '@'), 'result': result}];
+	//var Func = [{'name': name, 'text': process.replace(/\t/gm, 'ï¿½@'), 'result': result}];
 	var lex = new LexicalAnalyzer({'code':process.toOneByte(), 'comment':0, 'esc':''});
 //putObject('LEX', lex.print().toHTML());
 	var str = '', flag = true, subflag = false, autocr = false, sc = 0, spc = 0, space = -1;
-	var reg = new RegExp('^(op_[^E™š¦›œŸ ¡¤¢¥£‡@-‡S]|(number|ident|string|char)_.*)$');
+	var reg = new RegExp('^(op_[^ï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½@-ï¿½S]|(number|ident|string|char)_.*)$');
 	for(var t = lex.begin(); !t.eof(); t = t.next()) {
 		if(t.text.length <= 0) continue;
 		if(t.text.match(/\n/)) { sc = 0; flag = true; }
@@ -257,7 +237,7 @@ function Output(linedata) {
 
 		if(flag && t.kind === 'op') funcadd(name, result);
 
-		if(flag && t.value().match(/op_[‡@-‡S]/)) { subflag = false; space = -1; }
+		if(flag && t.value().match(/op_[ï¿½@-ï¿½S]/)) { subflag = false; space = -1; }
 
 		if(t.kind !== 'space' || (t.prv.value().match(reg) && t.nxt.value().match(reg))) {
 			str += t.text;
@@ -266,8 +246,8 @@ function Output(linedata) {
 			spc = sc;
 		}
 
-		if(t.value() === 'op_B') funcadd(name, result);
-		if(autocr && t.value() === "space_\n") funcadd(name, result);	// ‚¨‚»‚ç‚­•\‚Å‚ ‚é
+		if(t.value() === 'op_ï¿½B') funcadd(name, result);
+		if(autocr && t.value() === "space_\n") funcadd(name, result);	// ï¿½ï¿½ï¿½ï¿½ï¿½ç‚­ï¿½\ï¿½Å‚ï¿½ï¿½ï¿½
 	}
 	funcadd(name, result);
 
@@ -371,20 +351,20 @@ function Export() {
 
 <form name="form"><input type="text" name="debug" size=1><br>
 <table style="font-size:x-small;" border=0>
-<tr><td>[“ü—Í]</td><td>ƒT[ƒrƒX’è‹`‘</td><td id='service'></td><tr>
-<tr style="display:none"><td>[o—Í]</td><td>Œ±€–Ú‘(ƒT[ƒrƒX)</td><td id='testcase'></td><tr>
+<tr><td>[ï¿½ï¿½ï¿½ï¿½]</td><td>ï¿½Tï¿½[ï¿½rï¿½Xï¿½ï¿½`ï¿½ï¿½</td><td id='service'></td><tr>
+<tr style="display:none"><td>[ï¿½oï¿½ï¿½]</td><td>ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úï¿½(ï¿½Tï¿½[ï¿½rï¿½X)</td><td id='testcase'></td><tr>
 </table>
-<input type="button" name="execute" value=" Às "><input type="button" onclick="ToggleMarge();" value="•\¦Ø‘Ö">
+<input type="button" name="execute" value=" ï¿½ï¿½ï¿½s "><input type="button" onclick="ToggleMarge();" value="ï¿½\ï¿½ï¿½ï¿½Ø‘ï¿½">
 </form>
 <div id="result"></div><BR>
-ƒRƒsƒy—pƒeƒLƒXƒgË<textarea id='copytext'></textarea>
+ï¿½Rï¿½sï¿½yï¿½pï¿½eï¿½Lï¿½Xï¿½gï¿½ï¿½<textarea id='copytext'></textarea>
 </body><script type="text/javascript"><!--
 
 var ff_Service = new CreateFileField('service', GetFileName().replace(/\.[^\.]*$/, '.service.ini'), true);
 var ff_TestCase= new CreateFileField('testcase', GetFileName().replace(/\.[^\.]*$/, '.testcase.ini'), true);
 
 //==============================================================================
-//ƒCƒxƒ“ƒg’è‹`
+//ï¿½Cï¿½xï¿½ï¿½ï¿½gï¿½ï¿½`
 //==============================================================================
 document.form.execute.onclick = function() {
 	DEBUG = parseInt('0'+document.form.debug.value);

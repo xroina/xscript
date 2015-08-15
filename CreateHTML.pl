@@ -66,11 +66,7 @@ foreach(sort{
 
 CreateHtml($lex);
 
-($progpath) = readlink($0) =~ /^(.*?)([^\/]+)$/ if -l $0;
-if(-d "$progpath/js") {
-    unlink 'js' if -d 'js';
-    symlink "$progpath/js", 'js';
-}
+Utility::createSymLink();
 
 system "xdg-open $param->{output} > /dev/null 2>&1 &" if $param->{xdg};
 
@@ -122,37 +118,8 @@ sub CreateHtml {
                 'http-equiv'=> 'X-UA-Compatible',
                 -content    => 'IE=10'}),
             $q->meta({-charset=>'UTF-8'}),
+            $q->link({-rel=>'stylesheet', href=>'css/base.css'}),
             $q->style({-type=>'text/css'}, "\n", <<"CSS"
-
-body {
-    font-size : 9pt;
-}
-
-h1 {
-    font-size : 10pt;
-}
-
-h2 {
-    font-size : 9pt;
-    font-weight : lighter;
-}
-
-table {
-    border-collapse: collapse;
-}
-
-th, td {
-    border: 1px solid gray;
-    white-space: nowrap;
-}
-
-thead {
-    background-color: LightGreen;
-}
-
-tfoot {
-    background-color: Pink;
-}
 
 div.line {
     position : relative;
@@ -459,7 +426,7 @@ JAVASCRIPT
             -onmouseout =>'this.style.backgroundColor="";',
         };
 
-        $fh->print($q->span($att, put($t->text)));
+        $fh->print($q->span($att, Utility::toHtml($t->text)));
 
         if($t->text =~ /\n/ || $t->next->eof) {
             $fh->print($q->div({-id=>"view_$name"}));
@@ -473,16 +440,3 @@ JAVASCRIPT
     $fh->close();
 }
 
-sub put {
-    my($text) = @_;
-    $text =~ s/&/&amp;/gm;
-    $text =~ s/</&lt;/gm;
-    $text =~ s/>/&gt;/gm;
-    $text =~ s/"/&quot;/gm;
-    $text =~ s/\t/    /gm;
-    $text =~ s/\n/&nbsp;\n/gm;
-    $text =~ s/ /&nbsp;/gm;
-
-    return $text;
-#    return Encode::decode('utf8', $text);
-}

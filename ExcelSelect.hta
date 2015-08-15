@@ -1,34 +1,10 @@
 <html><head>
 <title>ExcelSelect</title>
 <meta http-equiv="X-UA-Compatible" content="IE=10" />
-<style type="text/css">
-body {
-    font-size : 9pt;
-}
-h1 {
-    font-size : 10pt;
-}
-table {
-    border-collapse: collapse;
-}
-th {
-    border: 1px solid gray;
-	white-space: nowrap;
-}
-td {
-	width : 10em;
-    border: 1px solid gray;
-}
-thead {
-    background-color: LightGreen;
-}
-tfoot {
-    background-color: Pink;
-}
-</style>
-<script type="text/javascript" src="js/Utility.js"></script>
-<script type="text/javascript" src="js/Connection.js"></script>
-<script type="text/javascript" src="js/FileHandle.js"></script>
+<link rel="stylesheet" href="css/base.css">
+<script type="text/javascript" src="js/Utility.js" />
+<script type="text/javascript" src="js/Connection.js" />
+<script type="text/javascript" src="js/FileHandle.js" />
 <script langage="text/javascript"><!--
 
 var fs = new ActiveXObject("Scripting.FileSystemObject");
@@ -63,8 +39,8 @@ function Execute(file, table) {
 	document.getElementById('result').innerHTML = "";
 	clearMessage();
 
-	if(!file.match(/\.xlsx?$/)) { info("<B>Excelƒtƒ@ƒCƒ‹‚Å‚Í‚ ‚è‚Ü‚¹‚ñ:"+file); return; }
-	if(!fs.FileExists(file)) { info("<B>ƒtƒ@ƒCƒ‹‚ª‚ ‚è‚Ü‚¹‚ñ:"+file); return; }
+	if(!file.match(/\.xlsx?$/)) { info("<B>Excelï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Å‚Í‚ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½:"+file); return; }
+	if(!fs.FileExists(file)) { info("<B>ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½:"+file); return; }
 	if(!table) return;
 
 	var index = document.form.driver.selectedIndex;
@@ -78,7 +54,7 @@ function Execute(file, table) {
 	var tbl = document.createElement('TABLE');
 	var thd = document.createElement('THEAD');
 	var tr,th,td;
-	// ƒwƒbƒ_
+	// ï¿½wï¿½bï¿½_
 	tr = document.createElement('TR');
 	th = document.createElement('TH'); th.style.fontSize = 'xx-small';
 	th.innerHTML = "Field"; tr.appendChild(th);
@@ -102,7 +78,7 @@ function Execute(file, table) {
 
 	tbl.appendChild(thd);
 	
-	// –{‘Ì
+	// ï¿½{ï¿½ï¿½
 	var tbd = document.createElement('TBODY');
 	for(var line = 1; !cn.eof(); cn.next(), line++) {
 
@@ -132,15 +108,15 @@ function Execute(file, table) {
 <form name="form">
 <input type="text" name="debug" size=1>
 <br>
-ŒŸõƒpƒX <span id='xls'></span>
+ï¿½ï¿½ï¿½ï¿½ï¿½pï¿½X <span id='xls'></span>
 <br>
-ƒhƒ‰ƒCƒo
+ï¿½hï¿½ï¿½ï¿½Cï¿½o
 <select name="driver"></select><br>
-<input type="button" name="gettables" value=" ‰ğÍ "><br>
-ƒV[ƒg
+<input type="button" name="gettables" value=" ï¿½ï¿½ï¿½ "><br>
+ï¿½Vï¿½[ï¿½g
 <select name="sheets"></select>
 <br>
-<input type="button" name="execute" value=" Às ">
+<input type="button" name="execute" value=" ï¿½ï¿½ï¿½s ">
 </form>
 
 <div id="result"></div><BR>
@@ -162,7 +138,7 @@ for(var i in drivers) {
 	document.form.driver.appendChild(option);
 }
 
-//ƒCƒxƒ“ƒg’è‹`====================================================================================================================
+//ï¿½Cï¿½xï¿½ï¿½ï¿½gï¿½ï¿½`====================================================================================================================
 document.form.execute.onclick = function() {
 	DEBUG = parseInt('0'+document.form.debug.value);
 	var index = document.form.sheets.selectedIndex;

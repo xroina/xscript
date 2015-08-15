@@ -1,34 +1,10 @@
 <html><head>
 <title>ExcelSelect</title>
 <meta http-equiv="X-UA-Compatible" content="IE=10" />
-<style type="text/css">
-body {
-    font-size : 9pt;
-}
-h1 {
-    font-size : 10pt;
-}
-table {
-    border-collapse: collapse;
-}
-th {
-    border: 1px solid gray;
-	white-space: nowrap;
-}
-td {
-	width : 10em;
-    border: 1px solid gray;
-}
-thead {
-    background-color: LightGreen;
-}
-tfoot {
-    background-color: Pink;
-}
-</style>
-<script type="text/javascript" src="js/Utility.js"></script>
-<script type="text/javascript" src="js/Connection.js"></script>
-<script type="text/javascript" src="js/FileHandle.js"></script>
+<link rel="stylesheet" href="css/base.css">
+<script type="text/javascript" src="js/Utility.js" />
+<script type="text/javascript" src="js/Connection.js" />
+<script type="text/javascript" src="js/FileHandle.js" />
 <script langage="text/javascript"><!--
 
 var fileField;
@@ -54,13 +30,13 @@ function Execute() {
 	document.getElementById('result').innerHTML = "";
 	
 	if(document.form.find.value.length == 0) {
-		alert('ŒŸõ•¶š—ñ‚ğw’è‚µ‚Ä‚­‚¾‚³‚¢');
+		alert('ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½wï¿½è‚µï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½');
 		return;
 	}
 
 	if(url.match(/^[^\/]+\/\/[\/\\]{2}/))
-		if(!confirm("ƒc[ƒ‹‚ÌÀsƒpƒX‚Éƒlƒbƒgƒ[ƒNƒpƒX‚ªw’è‚³‚ê‚Ä‚¢‚é‚½‚ßƒtƒ@ƒCƒ‹‚Ì”‚¾‚¯ƒlƒbƒgƒ[ƒNŒx‚ª”­¶‚µ‚Ü‚·B\n"
-			+ "ƒc[ƒ‹‚ğƒ[ƒJƒ‹ƒfƒBƒXƒN‚ÉƒRƒs[‚µ‚ÄÀs‚·‚é‚±‚Æ‚ğ‚¨‚·‚·‚ß‚µ‚Ü‚·B\nÀs‚µ‚Ä‚à‚æ‚ë‚µ‚¢‚Å‚·‚©H"))
+		if(!confirm("ï¿½cï¿½[ï¿½ï¿½ï¿½Ìï¿½ï¿½sï¿½pï¿½Xï¿½Éƒlï¿½bï¿½gï¿½ï¿½ï¿½[ï¿½Nï¿½pï¿½Xï¿½ï¿½ï¿½wï¿½è‚³ï¿½ï¿½Ä‚ï¿½ï¿½é‚½ï¿½ßƒtï¿½@ï¿½Cï¿½ï¿½ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½lï¿½bï¿½gï¿½ï¿½ï¿½[ï¿½Nï¿½xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½B\n"
+			+ "ï¿½cï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½Jï¿½ï¿½ï¿½fï¿½Bï¿½Xï¿½Nï¿½ÉƒRï¿½sï¿½[ï¿½ï¿½ï¿½Äï¿½ï¿½sï¿½ï¿½ï¿½é‚±ï¿½Æ‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß‚ï¿½ï¿½Ü‚ï¿½ï¿½B\nï¿½ï¿½ï¿½sï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ë‚µï¿½ï¿½ï¿½Å‚ï¿½ï¿½ï¿½ï¿½H"))
 			return;
 
 	ph.files   = [];
@@ -70,7 +46,7 @@ function Execute() {
 	try {
 		ph.reg     = new RegExp(document.form.find.value);
 	} catch(e) {
-		alert('ŒŸõ•¶š—ñ‚Ì³‹K•\Œ»‚ª–³Œø‚Å‚·');
+		alert('ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½ï¿½Kï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å‚ï¿½');
 		return;
 	}
 	document.form.execute.disabled = true;
@@ -84,7 +60,7 @@ function Phase0() {
 	var em = new Enumerator(folder.Files);
 	for(em.moveFirst(); !em.atEnd(); em.moveNext()) {
 		var file = em.item().Name;
-		if(!file.match(/\.xlsx?$/)) { info('<font color="blue">Excelƒtƒ@ƒCƒ‹‚Å‚Í‚ ‚è‚Ü‚¹‚ñBƒXƒLƒbƒv‚µ‚Ü‚·</font>:' + file); continue; }
+		if(!file.match(/\.xlsx?$/)) { info('<font color="blue">Excelï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Å‚Í‚ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½Bï¿½Xï¿½Lï¿½bï¿½vï¿½ï¿½ï¿½Ü‚ï¿½</font>:' + file); continue; }
 		ph.files.push({'path': ph.Folders[0], 'file': file});
 	}
 	em = null;
@@ -99,9 +75,9 @@ function Phase0() {
 	ph.Folders.shift();
 
 	var p = -1;
-	if(ph.Folders.length > 0)    { p = 0; info('ƒTƒuƒtƒHƒ‹ƒ_‚ğŒŸõ‚µ‚Ä‚¢‚Ü‚·:' + ph.Folders[0]); }
+	if(ph.Folders.length > 0)    { p = 0; info('ï¿½Tï¿½uï¿½tï¿½Hï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½Ü‚ï¿½:' + ph.Folders[0]); }
 	else if(ph.files.length > 0) { p = 1; ph.file  = 0; }
-	else info('<font color="red">‘ÎÛ‚Ìƒtƒ@ƒCƒ‹‚ªŒ©“–‚½‚è‚Ü‚¹‚ñ‚Å‚µ‚½BƒpƒX‚ğŒ©’¼‚µ‚Ä‚­‚¾‚³‚¢</font>');
+	else info('<font color="red">ï¿½ÎÛ‚Ìƒtï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½Å‚ï¿½ï¿½ï¿½ï¿½Bï¿½pï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</font>');
 	if(p >= 0) setTimeout('Phase' + p + '()', TIMEOUT);
 }
 
@@ -110,7 +86,7 @@ function Phase1() {
 	if(!('file' in ph)) return;
 
 	ph.name    = ph.files[ph.file].name;
-	info('ƒtƒ@ƒCƒ‹F"' + ph.files[ph.file].file + '" ‚ğŒŸõ‚µ‚Ü‚·)');
+	info('ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½F"' + ph.files[ph.file].file + '" ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½)');
 
 	ph.cn = new Connection(MSExcel12_OLE_Driver, {
 		file:ph.files[ph.file].path + "/" + ph.files[ph.file].file,
@@ -138,21 +114,21 @@ function Phase2() {
 		var line = 0;
 		for(var line = 0; !cn.eof(); cn.next()) {
 			line++;
-			// ‚Psæ“¾
+			// ï¿½Pï¿½sï¿½æ“¾
 			var values = [];
 			for (var i = 0; i < cn.count(); i++) {
 				var text = cn.item(i);
 				var type = getType(text);
 				if(type === 'Null') text = '';
 				if(type !== 'String') text = new String(text);
-				values[i] = text.replace(/^\s*(.*?)\s*$/, function(s,p){return p})	// ‘OŒã‚ÌƒXƒy[ƒX‚ğÁ‚·
-					.replace(/\015\012|\012|\015/gm, '')							// ‰üs‚ğÁ‚·
-					.replace(/\t/gm, '    ')										// tab‚ğÁ‚·
-					.toOneByte();													// ”¼Šp•¶š‚É‚·‚é
+				values[i] = text.replace(/^\s*(.*?)\s*$/, function(s,p){return p})	// ï¿½Oï¿½ï¿½ÌƒXï¿½yï¿½[ï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+					.replace(/\015\012|\012|\015/gm, '')							// ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+					.replace(/\t/gm, '    ')										// tabï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+					.toOneByte();													// ï¿½ï¿½ï¿½pï¿½ï¿½ï¿½ï¿½ï¿½É‚ï¿½ï¿½ï¿½
 			}
-			if(values.join('').length == 0) continue;		// ƒf[ƒ^‚Ì‚È‚¢s‚Í”ò‚Î‚·
+			if(values.join('').length == 0) continue;		// ï¿½fï¿½[ï¿½^ï¿½Ì‚È‚ï¿½ï¿½sï¿½Í”ï¿½Î‚ï¿½
 			var str = values.join("\t");
-			if(str.match(ph.reg)) {							// ŒŸõğŒ‚Éƒqƒbƒg‚·‚é‚©
+			if(str.match(ph.reg)) {							// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Éƒqï¿½bï¿½gï¿½ï¿½ï¿½é‚©
 				if(!ph.data) ph.data = [];
 				ph.data.push({
 					file	: ph.files[ph.file].file,
@@ -182,14 +158,14 @@ function Phase2() {
 	if(p >= 0) setTimeout('Phase' + p + '()', TIMEOUT);
 }
 
-//HTML‚Ì\¬====================================================================================================================
+//HTMLï¿½Ì\ï¿½ï¿½====================================================================================================================
 function Phase3() {
 
 	var tbl = document.createElement('table');
 	var thd = document.createElement('thead');
 	var tr,th,td;
 
-	// ƒwƒbƒ_
+	// ï¿½wï¿½bï¿½_
 	tr = document.createElement('tr');
 	th = document.createElement('th'); th.style.fontSize = 'xx-small';
 	th.innerHTML = '#';		tr.appendChild(th);
@@ -207,7 +183,7 @@ function Phase3() {
 	thd.appendChild(tr);
 	tbl.appendChild(thd);
 
-	// –{‘Ì
+	// ï¿½{ï¿½ï¿½
 	var tbd = document.createElement('tbody');
 	var line = 0;
 	for(var i in ph.data) {
@@ -246,14 +222,14 @@ function Phase3() {
 
 <form name="form">
 <input type="text" name="debug" size=1>
-ŒŸõƒpƒX <span id='xls'></span>
+ï¿½ï¿½ï¿½ï¿½ï¿½pï¿½X <span id='xls'></span>
 <div style="font-size:x-small">
-<a href="https://msdn.microsoft.com/ja-jp/library/Cc392020.aspx">ŒŸõ•¶š—ñ</a><input type="text" name="find" size=50 title="³‹K•\Œ»‚Å“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B
-ƒZƒ‹“à‚Ì‰üs‚Í–³‹‚³‚ê‚Ü‚·B
-‘SŠp‰p”‚Í”¼Šp•¶š‚ÅŒŸõ‚µ‚Ä‚­‚¾‚³‚¢B
-•¡”‚ÌƒZƒ‹‚É‚Ü‚½‚ª‚éŒŸõ‚Íƒ^ƒu(\t)‚Å‹æØ‚é‚±‚Æ‚ÅŒŸõ‚Å‚«‚Ü‚·B">
-	<input type="checkbox" name="subfolder" style="width:10px;height:10px;vertical-align:middle;">&nbsp;ƒTƒuƒtƒHƒ‹ƒ_‚àŒŸõ‚·‚é&nbsp;
-	<input type="button" name="execute" value=" Às ">
+<a href="https://msdn.microsoft.com/ja-jp/library/Cc392020.aspx">ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</a><input type="text" name="find" size=50 title="ï¿½ï¿½ï¿½Kï¿½\ï¿½ï¿½ï¿½Å“ï¿½ï¿½Í‚ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
+ï¿½Zï¿½ï¿½ï¿½ï¿½ï¿½Ì‰ï¿½ï¿½sï¿½Í–ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½B
+ï¿½Sï¿½pï¿½pï¿½ï¿½ï¿½Í”ï¿½ï¿½pï¿½ï¿½ï¿½ï¿½ï¿½ÅŒï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
+ï¿½ï¿½ï¿½ï¿½ï¿½ÌƒZï¿½ï¿½ï¿½É‚Ü‚ï¿½ï¿½ï¿½ï¿½éŒŸï¿½ï¿½ï¿½Íƒ^ï¿½u(\t)ï¿½Å‹ï¿½Ø‚é‚±ï¿½Æ‚ÅŒï¿½ï¿½ï¿½ï¿½Å‚ï¿½ï¿½Ü‚ï¿½ï¿½B">
+	<input type="checkbox" name="subfolder" style="width:10px;height:10px;vertical-align:middle;">&nbsp;ï¿½Tï¿½uï¿½tï¿½Hï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½&nbsp;
+	<input type="button" name="execute" value=" ï¿½ï¿½ï¿½s ">
 </div>
 </form>
 

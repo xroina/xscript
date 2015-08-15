@@ -58,11 +58,7 @@ Execute(@{$param->{path}});
 
 CreateHTML();
 
-($progpath) = readlink($0) =~ /^(.*?)([^\/]+)$/ if -l $0;
-if(-d "$progpath/js") {
-    unlink 'js' if -d 'js';
-    symlink "$progpath/js", 'js';
-}
+Utility::createSymLink();
 
 system "xdg-open $param->{output} > /dev/null 2>&1 &" if $param->{xdg};
 
@@ -134,29 +130,7 @@ sub CreateHTML {
                 'http-equiv'=>'Content-Type',
                 -content    =>'text/html; charset=UTF-8'}),
             $q->meta({-charset=>'UTF-8'}),
-            $q->style({-type=>'text/css'}, "\n", <<"CSS"
-
-body {
-    font-size : 9pt;
-}
-h1 {
-    font-size : 10pt;
-}
-table {
-    border-collapse: collapse;
-}
-th, td {
-    border: 1px solid gray;
-    white-space: nowrap;
-}
-thead {
-    background-color: LightGreen;
-}
-tfoot {
-    background-color: Pink;
-}
-CSS
-            ),
+            $q->link({-rel=>'stylesheet', href=>'css/base.css'}),
             (map{ $q->script({-type=>'text/javascript', -src=>"js/$_"}, "") } @{$param->{javascript}}),
             $q->script({-langage=>"text/javascript"}, "<!--\n", <<'JAVASCRIPT'
 

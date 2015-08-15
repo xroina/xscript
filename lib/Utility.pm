@@ -108,4 +108,28 @@ sub getStartOption {
 	}
 }
 
+sub createSymLink {
+	my($prog) = $0 =~ /^(.*?)[^\/]+$/;
+	($prog) = readlink($0) =~ /^(.*?)([^\/]+)$/ if -l $0;
+	foreach('js', 'css', 'img') {
+		if(-d "$prog/$_") {
+			unlink $_ if -d $_;
+			symlink "$prog/$_", $_;
+		}
+	}
+}
+
+sub toHtml {
+	($_) = @_;
+	s/&/&amp;/gm;
+	s/</&lt;/gm;
+	s/>/&gt;/gm;
+	s/"/&quot;/gm;
+	s/\t/    /gm;
+	s/\n/&nbsp;\n/gm;
+	s/ /&nbsp;/gm;
+	
+	return $_;
+}
+
 1;

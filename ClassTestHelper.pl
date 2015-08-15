@@ -10,7 +10,6 @@ use warnings;
 use utf8;
 
 use FileHandle;
-use CGI;
 use Encode;
 
 use Utility;
@@ -83,11 +82,7 @@ foreach my $ns(grep{/^(namespace|class)_/} keys %$test) {
 
 CreateHtml();
 
-($progpath) = readlink($0) =~ /^(.*?)([^\/]+)$/ if -l $0;
-if(-d "$progpath/js") {
-    unlink 'js' if -d 'js';
-    symlink "$progpath/js", 'js';
-}
+Utility::createSymLink();
 
 system "xdg-open $param->{output} > /dev/null 2>&1 &" if $param->{xdg};
 
@@ -314,7 +309,7 @@ sub getComment {
         $text =~ s/\*\/$//;
         $text =~ s/^\s*\*//gm;
         $text =~ s/　/ /g;
-        $text =~ s/[\s]+/ /g;
+        $text =~ s/\s+/ /g;
         $text =~ s/^\s*(.*?)\s*$/$1/;
         next unless $text;
 
@@ -332,6 +327,7 @@ sub hash_marge{
 }
 
 sub CreateHtml {
+	use CGI;
     CGI::charset("utf-8");
     my $q = new CGI;
 
@@ -344,29 +340,7 @@ sub CreateHtml {
                 'http-equiv'=>'Content-Type',
                 -content    =>'text/html; charset=UTF-8'}),
             $q->meta({-charset=>'UTF-8'}),
-            $q->style({-type=>'text/css'}, "\n", <<"CSS"
-
-body {
-    font-size : 9pt;
-}
-h1 {
-    font-size : 10pt;
-}
-table {
-    border-collapse: collapse;
-}
-th, td {
-    border: 1px solid gray;
-    white-space: nowrap;
-}
-thead {
-    background-color: LightGreen;
-}
-tfoot {
-    background-color: Pink;
-}
-CSS
-            ),
+            $q->link({-rel=>'stylesheet', href=>'css/base.css'}),
             (map{ $q->script({-type=>'text/javascript', -src=>"js/$_"}, "") } @{$param->{javascript}}),
             $q->script({-langage=>"text/javascript"}, "<!--\n", <<'JAVASCRIPT'
 JAVASCRIPT
@@ -560,8 +534,7 @@ JAVASCRIPT
 sub putComment {
     my($comment) = @_;
     return '' unless $comment;
-#    return Encode::decode('utf8', join "<br>\n", split "\n", $comment);
-    return  join "<br>\n", split "\n", $comment;
+    return Utility::toHtml(join "<br>\n", split "\n", $comment);
 }
 
 sub debug {
