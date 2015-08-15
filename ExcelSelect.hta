@@ -39,8 +39,8 @@ function Execute(file, table) {
 	document.getElementById('result').innerHTML = "";
 	clearMessage();
 
-	if(!file.match(/\.xlsx?$/)) { info("<B>Excel�t�@�C���ł͂���܂���:"+file); return; }
-	if(!fs.FileExists(file)) { info("<B>�t�@�C��������܂���:"+file); return; }
+	if(!file.match(/\.xlsx?$/)) { info("<B>Excelファイルではありません:"+file); return; }
+	if(!fs.FileExists(file)) { info("<B>ファイルがありません:"+file); return; }
 	if(!table) return;
 
 	var index = document.form.driver.selectedIndex;
@@ -54,7 +54,7 @@ function Execute(file, table) {
 	var tbl = document.createElement('TABLE');
 	var thd = document.createElement('THEAD');
 	var tr,th,td;
-	// �w�b�_
+	// ヘッダ
 	tr = document.createElement('TR');
 	th = document.createElement('TH'); th.style.fontSize = 'xx-small';
 	th.innerHTML = "Field"; tr.appendChild(th);
@@ -78,7 +78,7 @@ function Execute(file, table) {
 
 	tbl.appendChild(thd);
 	
-	// �{��
+	// 本体
 	var tbd = document.createElement('TBODY');
 	for(var line = 1; !cn.eof(); cn.next(), line++) {
 
@@ -108,15 +108,15 @@ function Execute(file, table) {
 <form name="form">
 <input type="text" name="debug" size=1>
 <br>
-�����p�X <span id='xls'></span>
+検索パス <span id='xls'></span>
 <br>
-�h���C�o
+ドライバ
 <select name="driver"></select><br>
-<input type="button" name="gettables" value=" ��� "><br>
-�V�[�g
+<input type="button" name="gettables" value=" 解析 "><br>
+シート
 <select name="sheets"></select>
 <br>
-<input type="button" name="execute" value=" ���s ">
+<input type="button" name="execute" value=" 実行 ">
 </form>
 
 <div id="result"></div><BR>
@@ -138,7 +138,7 @@ for(var i in drivers) {
 	document.form.driver.appendChild(option);
 }
 
-//�C�x���g��`====================================================================================================================
+//イベント定義====================================================================================================================
 document.form.execute.onclick = function() {
 	DEBUG = parseInt('0'+document.form.debug.value);
 	var index = document.form.sheets.selectedIndex;

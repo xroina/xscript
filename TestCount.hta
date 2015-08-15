@@ -1,5 +1,5 @@
 <html><head>
-<title>�f�B�V�W�����e�[�u�������J�E���g�c�[��</title>
+<title>ディシジョンテーブル件数カウントツール</title>
 <meta http-equiv="X-UA-Compatible" content="IE=10" />
 <link rel="stylesheet" href="css/base.css">
 <script type="text/javascript" src="js/Utility.js" />
@@ -19,8 +19,8 @@ function Execute(path, flag) {
 	document.getElementById('result').innerHTML = "";
 
 	if(document.URL.match(/^[^\/]+\/\/[\/\\]{2}/))
-		if(!confirm("�c�[���̎��s�p�X�Ƀl�b�g���[�N�p�X���w�肳��Ă��邽�߃t�@�C���̐������l�b�g���[�N�x�����������܂��B\n"
-			+ "�c�[�������[�J���f�B�X�N�ɃR�s�[���Ď��s���邱�Ƃ��������߂��܂��B\n���s���Ă���낵���ł����H"))
+		if(!confirm("ツールの実行パスにネットワークパスが指定されているためファイルの数だけネットワーク警告が発生します。\n"
+			+ "ツールをローカルディスクにコピーして実行することをおすすめします。\n実行してもよろしいですか？"))
 			return;
 
 	ph.files   = [];
@@ -37,13 +37,13 @@ function Phase0() {
 	var em = new Enumerator(folder.Files);
 	for(em.moveFirst(); !em.atEnd(); em.moveNext()) {
 		var file = em.item().Name;
-		if(!file.match(/\.xlsx?$/))           { info('<font color="blue">Excel�t�@�C���ł͂���܂���B�X�L�b�v���܂�</font>:' + file); continue; }
-		if(!file.match(/^[\w\-]+_(.+)_�P��/)) { info('<font color="blue">�P�̎������ڂł͂���܂���B�X�L�b�v���܂�</font>:' + file);  continue; }
+		if(!file.match(/\.xlsx?$/))           { info('<font color="blue">Excelファイルではありません。スキップします</font>:' + file); continue; }
+		if(!file.match(/^[\w\-]+_(.+)_単体/)) { info('<font color="blue">単体試験項目ではありません。スキップします</font>:' + file);  continue; }
 		ph.files.push({
 			path   : ph.Folders[0],
 			file   : file,
 			name   : RegExp.$1,
-			service: file.match(/�i�T�[�r�X�j/)
+			service: file.match(/（サービス）/)
 		});
 	}
 	em = null;
@@ -57,9 +57,9 @@ function Phase0() {
 	ph.Folders.shift();
 
 	var p = -1;
-	if(ph.Folders.length > 0)    { p = 0; info('�T�u�t�H���_���������Ă��܂�:' + ph.Folders[0]); }
+	if(ph.Folders.length > 0)    { p = 0; info('サブフォルダを検索しています:' + ph.Folders[0]); }
 	else if(ph.files.length > 0) { p = 1; ph.file  = 0; }
-	else info("<font color='red'>�Ώۂ̃t�@�C������������܂���ł����B�p�X���������Ă�������</font>");
+	else info("<font color='red'>対象のファイルが見当たりませんでした。パスを見直してください</font>");
 	if(p >= 0) setTimeout("Phase" + p + "()", TIMEOUT);
 }
 
@@ -68,7 +68,7 @@ function Phase1() {
 	if(!('file' in ph)) return;
 
 	ph.name    = ph.files[ph.file].name;
-	info("�t�@�C���F" + ph.files[ph.file].file + " (" + (ph.files[ph.file].service ? "�T�[�r�X�̒P�̎������ѕ\" : "�f�B�V�W�����e�[�u��") + "����͂��܂�)");
+	info("ファイル：" + ph.files[ph.file].file + " (" + (ph.files[ph.file].service ? "サービスの単体試験成績表" : "ディシジョンテーブル") + "を解析します)");
 
 	ph.cn = new Connection(MSExcel12_ODBC_Driver, {
 		file:ph.files[ph.file].path + "/" + ph.files[ph.file].file,
@@ -91,7 +91,7 @@ function Phase2() {
 
 	if(table && table.match(/^'?[\w\-]+\$'?$/)) {
 		var ret = ph.files[ph.file].service ? count_service() : count_class();
-		if(!ret) info('<font color="brue">�������ڂ��擾�ł��܂���ł���</font> : '+ ph.files[ph.file].file + "->" + table)
+		if(!ret) info('<font color="brue">試験項目が取得できませんでした</font> : '+ ph.files[ph.file].file + "->" + table)
 	}
 	
 	var func = 'Phase';
@@ -109,7 +109,7 @@ function Phase2() {
 	setTimeout(func + '()', TIMEOUT);
 }
 
-//�N���X===========================================================================================================
+//クラス===========================================================================================================
 function count_class() {
 	var file  = ph.files[ph.file].file;
 	var cn = ph.cn;
@@ -118,9 +118,9 @@ function count_class() {
 	if(!(file in ph.count))
 		ph.count[file] = {
 			name	: ph.name,
-			����	: 0,
-			��		: 0,
-			���{	: 0,
+			件数	: 0,
+			済		: 0,
+			実施	: 0,
 			OK		: 0,
 			NG		: 0,
 			date	: {},
@@ -129,26 +129,26 @@ function count_class() {
 	var count = ph.count[file]
 	count.sheet.push({});
 
-	// �N���X������
-	cn.select("[F3] FROM [" + table + "] WHERE " + cn.row(table, "B") + " LIKE '�N���X������'");
+	// クラス物理名
+	cn.select("[F3] FROM [" + table + "] WHERE " + cn.row(table, "B") + " LIKE 'クラス物理名'");
 	if(!cn.eof()) count.value = cn.item("F3");
 	cn.close();
 
-	// ���\�b�h������
-	var sql = cn.row(table, "R5") + " FROM [" + table + "] WHERE " + cn.row(table, "B") + " LIKE '���\�b�h������'";
+	// メソッド物理名
+	var sql = cn.row(table, "R5") + " FROM [" + table + "] WHERE " + cn.row(table, "B") + " LIKE 'メソッド物理名'";
 	cn.select(sql);
 	if(!cn.eof()) count.sheet[count.sheet.length - 1].value = cn.item('R5');
 	cn.close();
 
-	// ���\�b�h�_����
-	var sql = cn.row(table, "F6") + " FROM [" + table + "] WHERE " + cn.row(table, "R7") + " LIKE '���\�b�h�_����'";
+	// メソッド論理名
+	var sql = cn.row(table, "F6") + " FROM [" + table + "] WHERE " + cn.row(table, "R7") + " LIKE 'メソッド論理名'";
 	cn.select(sql);
 	if(!cn.eof()) count.sheet[count.sheet.length - 1].name = cn.item('R8');
 	cn.close();
 
-	// �������ڂ̎擾
+	// 試験項目の取得
 	var area = [];
-	cn.select("* FROM [" + table + "] WHERE " + cn.row(table, "R7") + " LIKE '%�������ڂh�c%'");
+	cn.select("* FROM [" + table + "] WHERE " + cn.row(table, "R7") + " LIKE '%試験項目ＩＤ%'");
 	if(!cn.eof()) {
 		for(var i = 0; i < cn.count(); i++) {
 			var value = cn.item(i);
@@ -161,18 +161,18 @@ function count_class() {
 
 	var testArea = []; for(var i in area) testArea.push('[' + area[i].name + ']'); testArea = testArea.join(', ');
 
-	// �e�X�g�ϓ_���ڂ̍s��"��"������ꍇ�͏W�v�ΏۊO�Ƃ���B
-	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "B") + " LIKE '�e�X�g�ϓ_����'");
+	// テスト観点項目の行に"済"がある場合は集計対象外とする。
+	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "B") + " LIKE 'テスト観点項目'");
 	if(!cn.eof()) {
 		for (var i = 0; i < cn.count(); i++) {
-			var value = cn.item(i); if(value != null && value.match(/^��$/)) area[i].inv = 1;
+			var value = cn.item(i); if(value != null && value.match(/^済$/)) area[i].inv = 1;
 		}
 	}
 	cn.close();
 
-	// ���ʗ��̃`�F�b�N(OK���ۂ�)
+	// 結果欄のチェック(OKか否か)
 	sql = []; for(var i = 2; i < 7; i++) sql.push(cn.row(table, 'R' + i) + " IS NULL");
-	cn.select(testArea + " FROM [" + table + "] WHERE " + sql.join(" AND ") + " AND "+ cn.row(table, 'R7') + " LIKE '����'");
+	cn.select(testArea + " FROM [" + table + "] WHERE " + sql.join(" AND ") + " AND "+ cn.row(table, 'R7') + " LIKE '結果'");
 	if(!cn.eof()) {
 		for (var i = 0; i < cn.count(); i++) {
 			var value = cn.item(i); if(value == null || area[i].inv) continue;
@@ -181,10 +181,10 @@ function count_class() {
 	}
 	cn.close();
 	
-	// ���{���̎擾
+	// 実施日の取得
 	var flag = false;
 	var sql = []; for(var i in area) sql.push("[" + area[i].name + "] IS NOT NULL");
-	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "G") + " LIKE '���{��' AND " + sql.join(' AND '));
+	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "G") + " LIKE '実施日' AND " + sql.join(' AND '));
 	if(!cn.eof()) {
 		for(var i = 0; i < cn.count(); i++) {
 			var date = cn.item(i); if(!date && area[i].inv) continue;
@@ -196,7 +196,7 @@ function count_class() {
 	}
 	cn.close();
 	
-	// ���{���̎擾���̂Q
+	// 実施日の取得その２
 	if(flag) {
 		var year = new Date().getFullYear();
 		var sql = [];
@@ -212,8 +212,8 @@ function count_class() {
 		cn.close();
 	}
 
-	// NG�̎擾
-	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "G") + " LIKE '��Q�['");
+	// NGの取得
+	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "G") + " LIKE '障害票'");
 	if(!cn.eof()) {
 		for(var i = 0; i < cn.count(); i++) {
 			var value = cn.item(i); if(!value || area[i].inv) continue;
@@ -232,16 +232,16 @@ function count_class() {
 		}
 	}
 	for(var i in area) {
-		count.���� += area[i].cnt - area[i].inv;
-		count.��   += area[i].inv;
-		count.���{ += area[i].exe;
+		count.件数 += area[i].cnt - area[i].inv;
+		count.済   += area[i].inv;
+		count.実施 += area[i].exe;
 		count.OK   += area[i].ok;
 		count.NG   += area[i].ng;
 		
 		if('date' in area[i]) {
 			var date = area[i].date;
-			if(!(date in count.date)) count.date[date] = { ���{ : 0, OK : 0, NG : 0 };
-			count.date[date].���{ += area[i].exe;
+			if(!(date in count.date)) count.date[date] = { 実施 : 0, OK : 0, NG : 0 };
+			count.date[date].実施 += area[i].exe;
 			count.date[date].OK   += area[i].ok;
 			count.date[date].NG   += area[i].ng;
 		}
@@ -251,7 +251,7 @@ var s = [count.name]; for(var d in count.date) s.push(d); trace('DATE:'.bold() +
 	return true;
 }
 
-//�T�[�r�X===========================================================================================================
+//サービス===========================================================================================================
 function count_service() {
 	var file = ph.files[ph.file].file;
 	var cn = ph.cn;
@@ -260,19 +260,19 @@ function count_service() {
 	
 	if(!(name in ph.count))
 		ph.count[name] = {
-			name	: ph.name + '(�T�[�r�X)',
-			����	: 0,
-			��		: 0,
-			���{	: 0,
+			name	: ph.name + '(サービス)',
+			件数	: 0,
+			済		: 0,
+			実施	: 0,
 			OK		: 0,
 			NG		: 0,
 			date	: {},
 			sheet	: []
 		};
 	var count = ph.count[name];
-	var cnt = {���� : 0, �� : 0, ���{ : 0, OK : 0, NG : 0};
+	var cnt = {件数 : 0, 済 : 0, 実施 : 0, OK : 0, NG : 0};
 
-	// �N���X������
+	// クラス物理名
 	count.value = table.replace(/['$]/, "");	//'
 	
 	count.sheet.push({});
@@ -282,7 +282,7 @@ function count_service() {
 trace(cn.item("B")+","+cn.item("I")+","+cn.item("R11")+","+cn.item("R13"));
 		if(!cn.item("B").match(/^\d+$/) || !cn.item("I")) continue;
 
-		count.����++; flag = true;
+		count.件数++; flag = true;
 		var exe = exe, ok = 0, ng = 0, date, ng_date;
 		for(var i = 0; i < 3; i++) {
 			if(ok) continue;
@@ -294,24 +294,24 @@ trace(cn.item("B")+","+cn.item("I")+","+cn.item("R11")+","+cn.item("R13"));
 			if(d != null && !date) date = new Date(d).ToString();
 
 			exe = 1;
-			if(value.match(/��/)) ok = 1;
-			if(value.match(/�~/)) ng = 1;
+			if(value.match(/○/)) ok = 1;
+			if(value.match(/×/)) ng = 1;
 			
 			if(d != null && ng) ng_date = new Date(d).ToString();
 		}
 		
 		
-		count.���{ += exe;
+		count.実施 += exe;
 		count.OK   += ok;
 		count.NG   += ng;
 		
 		if(date) {
-			if(!(   date in count.date)) count.date[   date] = {���{ : 0, OK : 0, NG : 0};
-			count.date[date].���{ += exe;
+			if(!(   date in count.date)) count.date[   date] = {実施 : 0, OK : 0, NG : 0};
+			count.date[date].実施 += exe;
 			count.date[date].OK   += ok;
 		}
 		if(ng_date) {
-			if(!(ng_date in count.date)) count.date[ng_date] = {���{ : 0, OK : 0, NG : 0};
+			if(!(ng_date in count.date)) count.date[ng_date] = {実施 : 0, OK : 0, NG : 0};
 			count.date[ng_date].NG += ng;
 		}
 	}
@@ -321,11 +321,11 @@ var s = [count.name]; for(var d in count.date) s.push(d); trace('DATE:'.bold() +
 	return flag;
 }
 
-//HTML�̍\��====================================================================================================================
+//HTMLの構成====================================================================================================================
 function Phase3() {
 
 for(var id in ph.count) { var s = [];  for(var d in ph.count[id].date) s.push(d); trace('DATE'.bold() + ph.count[id].name + ',' + s.join(',')) }
-	var sum = { ���� : 0, �� : 0, ���{ : 0, OK : 0, NG : 0 };
+	var sum = { 件数 : 0, 済 : 0, 実施 : 0, OK : 0, NG : 0 };
 
 	var dateList = [];
 	var dateCount = [];
@@ -341,7 +341,7 @@ for(var id in ph.count) { var s = [];  for(var d in ph.count[id].date) s.push(d)
 	}
 	for(var date = new Date(min), i = 0; date <= max; date.setDate(date.getDate() + 1), i++) {
 		dateList[i] = date.ToString();
-		dateCount[i] = { ���{:0, OK:0 };
+		dateCount[i] = { 実施:0, OK:0 };
 	}
 trace('DATE'.bold() + dateList.join(","));
 
@@ -349,7 +349,7 @@ trace('DATE'.bold() + dateList.join(","));
 	var thead = document.createElement('thead');
 	var tr = document.createElement('TR');
 	tr.style.fontSize = 'xx-small';
-	var ar = ['�N���X', '����', '���{', 'OK', 'NG', '�ΏۊO'];
+	var ar = ['クラス', '件数', '実施', 'OK', 'NG', '対象外'];
 	for(var i in ar) {
 		var th = document.createElement('TH');
 		if(i > 0) {
@@ -388,9 +388,9 @@ trace('DATE'.bold() + dateList.join(","));
 	for(var i in key) {
 
 		var obj = ph.count[key[i]];
-		sum.���� += obj.����;
-		sum.��   += obj.��;
-		sum.���{ += obj.���{;
+		sum.件数 += obj.件数;
+		sum.済   += obj.済;
+		sum.実施 += obj.実施;
 		sum.OK   += obj.OK;
 		sum.NG   += obj.NG;
 
@@ -401,7 +401,7 @@ trace('DATE'.bold() + dateList.join(","));
 		if(obj.value) td.innerHTML += br + "(" + obj.value + ")";
 		tr.appendChild(td);
 
-		var ar = ['����', '���{', 'OK', 'NG', '��'];
+		var ar = ['件数', '実施', 'OK', 'NG', '済'];
 		for(var j in ar) {
 			var td = document.createElement('TD');
 			td.align = 'right'; td.rowSpan = 2;
@@ -409,7 +409,7 @@ trace('DATE'.bold() + dateList.join(","));
 			tr.appendChild(td);
 		}
 
-		var ar = ['���{', '����'];
+		var ar = ['実施', '完了'];
 		for(var j in ar) {
 			var td = document.createElement('TD');
 			td.style['font-size'] = 'x-small';
@@ -440,8 +440,8 @@ trace('DATE'.bold() + dateList.join(","));
 	var tfoot = document.createElement('tfoot');
 	var tr = document.createElement('TR');
 	var td = document.createElement('TD');
-	td.align = 'left'; td.rowSpan = 2; td.innerHTML = '���v'; tr.appendChild(td);
-	var ar = ['����', '���{', 'OK', 'NG', '��'];
+	td.align = 'left'; td.rowSpan = 2; td.innerHTML = '合計'; tr.appendChild(td);
+	var ar = ['件数', '実施', 'OK', 'NG', '済'];
 	for(var j in ar) {
 		var td = document.createElement('TD');
 		td.align = 'right'; td.rowSpan = 2;
@@ -449,7 +449,7 @@ trace('DATE'.bold() + dateList.join(","));
 		tr.appendChild(td);
 	}
 
-	var ar = ['���{', '����'];
+	var ar = ['実施', '完了'];
 	for(var j in ar) {
 		var td = document.createElement('TD');
 		td.style.fontSize = 'x-small';
@@ -461,7 +461,7 @@ trace('DATE'.bold() + dateList.join(","));
 			var td = document.createElement('TD');
 			td.style['font-size'] = 'x-small';
 			td.align = 'right';
-			if(dateCount[d].OK || dateCount[d].���{) td.innerHTML = dateCount[d][a];
+			if(dateCount[d].OK || dateCount[d].実施) td.innerHTML = dateCount[d][a];
 			else td.innerHTML = sp;
 			tr.appendChild(td);
 		}
@@ -482,13 +482,13 @@ trace('DATE'.bold() + dateList.join(","));
 </head><body>
 
 <form name="form">
-	<input type="text" name="begin" size=14 length=10>�`<input type="text" name="end" size=14 length=10><input type="text" name="debug" size=1>
+	<input type="text" name="begin" size=14 length=10>～<input type="text" name="end" size=14 length=10><input type="text" name="debug" size=1>
 	<br>
-	�����p�X <span id="ini"></span><br>
+	検索パス <span id="ini"></span><br>
 	<div style="font-size:x-small">
-		<input type="checkbox" name="subfolder" style="width:10px;height:10px;vertical-align:middle;"> �T�u�t�H���_����������
+		<input type="checkbox" name="subfolder" style="width:10px;height:10px;vertical-align:middle;"> サブフォルダも検索する
 		&nbsp;
-		<input type="button" name="execute" value=" ���s ">
+		<input type="button" name="execute" value=" 実行 ">
 	</div>
 </form>
 
@@ -497,7 +497,7 @@ trace('DATE'.bold() + dateList.join(","));
 </body><script><!--
 
 //====================================================================================================================
-// ���t�̐ݒ�
+// 日付の設定
 d = new Date();
 document.form.end.value = d.ToString();
 d.setDate(d.getDate()+1); d.setMonth(d.getMonth()-1);
@@ -505,7 +505,7 @@ document.form.begin.value = d.ToString();
 
 var fileField = new CreateFileField('ini', GetFileName().replace(/\.[^\.]*$/, '.ini'));
 
-//�C�x���g��`====================================================================================================================
+//イベント定義====================================================================================================================
 document.form.execute.onclick = function() {
 	DEBUG = parseInt('0'+document.form.debug.value);
 	this.disabled = true;

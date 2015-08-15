@@ -1,5 +1,5 @@
 <html><head>
-<title>�T�[�r�X�e�X�g�w���p</title>
+<title>サービステストヘルパ</title>
 <meta http-equiv="X-UA-Compatible" content="IE=10" />
 <link rel="stylesheet" href="css/base.css">
 <script type="text/javascript" src="js/Utility.js" />
@@ -19,8 +19,8 @@ var DATA = [];
 function Execute(input, output) {
 	document.getElementById('result').innerHTML = "";
 	clearMessage();
-	if(!input.match(/\.xlsx?$/)) { info('Excel�t�@�C���ł͂���܂���:'.bold() + input); return; }
-	if(!fs.FileExists(input)) { info('�t�@�C��������܂���:'.bold() + input); return; }
+	if(!input.match(/\.xlsx?$/)) { info('Excelファイルではありません:'.bold() + input); return; }
+	if(!fs.FileExists(input)) { info('ファイルがありません:'.bold() + input); return; }
 
 	var cn = new Connection(MSExcel12_OLE_Driver, {'file':input, readonly:1});
 	if(!cn.exists) return;
@@ -29,19 +29,19 @@ function Execute(input, output) {
 	line_count = 0;
 	var table = '';
 	for(var i in cn.table) {
-		if(cn.table[i].match(/��������/)) { table = cn.table[i]; break; }
+		if(cn.table[i].match(/処理説明/)) { table = cn.table[i]; break; }
 	}
 	if(table.length == 0) {
-		info('���������^�u���݂܂�܂���ł���:'.bold() + input+ br + 'table=' + cn.table.join(','));
+		info('処理説明タブがみつまりませんでした:'.bold() + input+ br + 'table=' + cn.table.join(','));
 		return;
 	}
 	//==========================================================================
-	// �e�[�u���w�b�_�̍\��
+	// テーブルヘッダの構成
 	//==========================================================================
 	var tbl = document.createElement('table');
 	var thd = document.createElement('thead');
 	var tr	= document.createElement('TR');
-	var head = ['��','�ӏ�', '��敪', '���敪', '���敪', '����', '����', '�m�F���e'];
+	var head = ['№','箇所', '大区分', '中区分', '小区分', '項目', '入力', '確認内容'];
 	for(var i in head) {
 		var th = document.createElement('TH');
 		th.innerHTML = head[i];
@@ -51,29 +51,29 @@ function Execute(input, output) {
 	tbl.appendChild(thd);
 	
 	//==========================================================================
-	// �{�̂̓Ǎ�
+	// 本体の読込
 	//==========================================================================
 	element = document.createElement('tbody');
 
 	var TYPES = {
-		'�G���e�B�e�B'	: '(E)',
-		'�C�x���g'		: '(S)',
-		'���L'			: '(Shr)',
-		'������'		: '(M)',
-		'�p�����[�^'	: '(SG)',
-		'�A�_�v'		: '(SG)',
+		'エンティティ'	: '(E)',
+		'イベント'		: '(S)',
+		'共有'			: '(Shr)',
+		'メモリ'		: '(M)',
+		'パラメータ'	: '(SG)',
+		'アダプ'		: '(SG)',
 		'API'			: '(API)',
-		'�߂�l'		: '(R)',
-		'���O'			: '',
-		'�Ȃ�'			: ''
+		'戻り値'		: '(R)',
+		'ログ'			: '',
+		'なし'			: ''
 	};
-	var head = [];	// �w�b�_���
-	var area = {};	// �ʒu���
-	var linedata = {'������':''};
+	var head = [];	// ヘッダ情報
+	var area = {};	// 位置情報
+	var linedata = {'処理名':''};
 
 	cn.select("* FROM [" + table + "A1:IV999]");
 	for(var line = 0; !cn.eof(); cn.next()) {
-		// �P�s�擾
+		// １行取得
 		var values = [];
 		for (var i = 0; i < cn.count(); i++) {
 			var text = cn.item(i);
@@ -82,15 +82,15 @@ function Execute(input, output) {
 			if(type !== 'String') text = new String(text);
 			values[i] = text.replace(/^\s*(.*?)\s*$/, function(s,p){return p});
 		}
-		if(values.join('').length == 0) continue;		// �f�[�^�̂Ȃ��s�͔�΂�
-		if(0 == line && !values[1].match('������')) continue;		// �w�b�_���܂Ŕ�΂�
+		if(values.join('').length == 0) continue;		// データのない行は飛ばす
+		if(0 == line && !values[1].match('処理名')) continue;		// ヘッダ部まで飛ばす
 
 trace('line=' + line + ':value=' + values.join(','));
 
 		line++;
 
 		//======================================================================
-		// �w�b�_���̏���
+		// ヘッダ部の処理
 		//======================================================================
 		while(line < 3) {
 			var i = line - 1, text = '';
@@ -99,9 +99,9 @@ trace('line=' + line + ':value=' + values.join(','));
 				if(values[j].length > 0) text = values[j];
 				head[i][j] = {'text': text};
 			}
-			if(line < 2) break;		// ��s�ڂ̓w�b�_�f�[�^����邾��
+			if(line < 2) break;		// 一行目はヘッダデータを取るだけ
 
-			// �Z���̃}�[�W������������
+			// セルのマージ情報を憶測する
 			for(var i in head) {	i = parseInt(i);
 				for(var j in head[i]) {	j = parseInt(j); var obj = head[i][j];
 					if(obj.hidden) continue;
@@ -115,7 +115,7 @@ trace('line=' + line + ':value=' + values.join(','));
 				}
 			}
 trace(['[HEAD]', head]);
-			// ���ڂ̈ʒu���̎擾
+			// 項目の位置情報の取得
 			for(var j in values) {	j = parseInt(j);
 				if(head[0][j].hidden && head[1][j].hidden) continue;
 				var text = head[0][j].text + head[1][j].text;
@@ -124,7 +124,7 @@ trace(['[HEAD]', head]);
 				col = !col ? j : j + col;
 				area[text] = {'begin':j, 'end': col};
 			}
-			// �w�b�_�̏㉺���r���Đ������ʒu���ɂ���
+			// ヘッダの上下を比較して正しい位置情報にする
 			var ar = [];
 			for(var i in area) ar.push(i);
 			ar.sort(function (a, b) { return area[a].begin - area[b].begin });
@@ -138,32 +138,32 @@ trace(['[AREA]', area]);
 		if(line < 3) continue;
 		
 		//======================================================================
-		// ���ڏ����擾����
+		// 項目情報を取得する
 		//======================================================================
-		// ������
+		// 処理名
 		//----------------------------------------------------------------------
-		var text = getCells(area['������'], values);
+		var text = getCells(area['処理名'], values);
 		if(text.length > 0) {
-			if(linedata['������'].length > 0) Output(linedata);
-			linedata['������'] = text;
-			linedata['���͎��'] = ''; linedata['���͍���'] = []; linedata['��������'] = '';
-			linedata['�o�͎��'] = ''; linedata['�o�͍���'] = []; linedata['���l����'] = '';
+			if(linedata['処理名'].length > 0) Output(linedata);
+			linedata['処理名'] = text;
+			linedata['入力種別'] = ''; linedata['入力項目'] = []; linedata['処理項目'] = '';
+			linedata['出力種別'] = ''; linedata['出力項目'] = []; linedata['備考項目'] = '';
 		}
-		// ���������Ȃ��ꍇ�͏������Ȃ��B
-		if(linedata['������'].length == 0) continue;
+		// 処理名がない場合は処理しない。
+		if(linedata['処理名'].length == 0) continue;
 
 		//----------------------------------------------------------------------
-		// ���l
+		// 備考
 		//----------------------------------------------------------------------
-		var text = getCells(area['���l����'], values);
-		if(text.length > 0) linedata['���l����'] += text;
+		var text = getCells(area['備考項目'], values);
+		if(text.length > 0) linedata['備考項目'] += text;
 
 		//----------------------------------------------------------------------
-		// ���o�̓f�[�^�̎擾
+		// 入出力データの取得
 		//----------------------------------------------------------------------
-		var ar = ['����', '�o��'];
+		var ar = ['入力', '出力'];
 		for(var i in ar) {
-			var item = ar[i] + '����', kind = ar[i] + '���';
+			var item = ar[i] + '項目', kind = ar[i] + '種別';
 			var type = getCells(area[kind], values);
 			var t = linedata[kind];
 			if(type.length > 0) {
@@ -175,12 +175,12 @@ trace(['[AREA]', area]);
 			if(text.length > 0) linedata[item].push(text + t);
 		}
 		//----------------------------------------------------------------------
-		// ��������
+		// 処理項目
 		//----------------------------------------------------------------------
-		var text = getCells(area['��������'], values, "\t").replace(/\s+$/, '');
-		linedata['��������'] += text + "\n";
+		var text = getCells(area['処理項目'], values, "\t").replace(/\s+$/, '');
+		linedata['処理項目'] += text + "\n";
 	}
-	if(linedata['������'].length > 0) Output(linedata);
+	if(linedata['処理名'].length > 0) Output(linedata);
 
 	tbl.appendChild(element);
 	document.getElementById('result').appendChild(tbl);
@@ -209,14 +209,14 @@ function getCells(obj, val, tab) {
 //==============================================================================
 function Output(linedata) {
 
-//		text = text.replace(/\[T\.?B\.?D\].*$/, '');	// TBD������
-	var process = linedata['��������'].replace(/\s+$/, '');
+//		text = text.replace(/\[T\.?B\.?D\].*$/, '');	// TBDを消す
+	var process = linedata['処理項目'].replace(/\s+$/, '');
 
-	var name = (linedata['������'] + "\n" + linedata['���l����']).replace(/\s+$/, '');
+	var name = (linedata['処理名'] + "\n" + linedata['備考項目']).replace(/\s+$/, '');
 
-	var input = arrayToString('���͍���');
-	var result = arrayToString('�o�͍���');
-	if(result.length > 0) result += '���o�͂���邱��';
+	var input = arrayToString('入力項目');
+	var result = arrayToString('出力項目');
+	if(result.length > 0) result += 'が出力されること';
 
 	function arrayToString(key) {
 		var ret = '';
@@ -225,11 +225,11 @@ function Output(linedata) {
 	}
 
 	var Func = [];
-	//var Func = [{'name': name, 'text': process.replace(/\t/gm, '�@'), 'result': result}];
+	//var Func = [{'name': name, 'text': process.replace(/\t/gm, '　'), 'result': result}];
 	var lex = new LexicalAnalyzer({'code':process.toOneByte(), 'comment':0, 'esc':''});
 //putObject('LEX', lex.print().toHTML());
 	var str = '', flag = true, subflag = false, autocr = false, sc = 0, spc = 0, space = -1;
-	var reg = new RegExp('^(op_[^�E�����������������������������@-�S]|(number|ident|string|char)_.*)$');
+	var reg = new RegExp('^(op_[^・☆★※○●◎◇◆□■▽△▼▲①-⑳]|(number|ident|string|char)_.*)$');
 	for(var t = lex.begin(); !t.eof(); t = t.next()) {
 		if(t.text.length <= 0) continue;
 		if(t.text.match(/\n/)) { sc = 0; flag = true; }
@@ -237,7 +237,7 @@ function Output(linedata) {
 
 		if(flag && t.kind === 'op') funcadd(name, result);
 
-		if(flag && t.value().match(/op_[�@-�S]/)) { subflag = false; space = -1; }
+		if(flag && t.value().match(/op_[①-⑳]/)) { subflag = false; space = -1; }
 
 		if(t.kind !== 'space' || (t.prv.value().match(reg) && t.nxt.value().match(reg))) {
 			str += t.text;
@@ -246,8 +246,8 @@ function Output(linedata) {
 			spc = sc;
 		}
 
-		if(t.value() === 'op_�B') funcadd(name, result);
-		if(autocr && t.value() === "space_\n") funcadd(name, result);	// �����炭�\�ł���
+		if(t.value() === 'op_。') funcadd(name, result);
+		if(autocr && t.value() === "space_\n") funcadd(name, result);	// おそらく表である
 	}
 	funcadd(name, result);
 
@@ -351,20 +351,20 @@ function Export() {
 
 <form name="form"><input type="text" name="debug" size=1><br>
 <table style="font-size:x-small;" border=0>
-<tr><td>[����]</td><td>�T�[�r�X��`��</td><td id='service'></td><tr>
-<tr style="display:none"><td>[�o��]</td><td>�������ڏ�(�T�[�r�X)</td><td id='testcase'></td><tr>
+<tr><td>[入力]</td><td>サービス定義書</td><td id='service'></td><tr>
+<tr style="display:none"><td>[出力]</td><td>試験項目書(サービス)</td><td id='testcase'></td><tr>
 </table>
-<input type="button" name="execute" value=" ���s "><input type="button" onclick="ToggleMarge();" value="�\���ؑ�">
+<input type="button" name="execute" value=" 実行 "><input type="button" onclick="ToggleMarge();" value="表示切替">
 </form>
 <div id="result"></div><BR>
-�R�s�y�p�e�L�X�g��<textarea id='copytext'></textarea>
+コピペ用テキスト⇒<textarea id='copytext'></textarea>
 </body><script type="text/javascript"><!--
 
 var ff_Service = new CreateFileField('service', GetFileName().replace(/\.[^\.]*$/, '.service.ini'), true);
 var ff_TestCase= new CreateFileField('testcase', GetFileName().replace(/\.[^\.]*$/, '.testcase.ini'), true);
 
 //==============================================================================
-//�C�x���g��`
+//イベント定義
 //==============================================================================
 document.form.execute.onclick = function() {
 	DEBUG = parseInt('0'+document.form.debug.value);

@@ -30,13 +30,13 @@ function Execute() {
 	document.getElementById('result').innerHTML = "";
 	
 	if(document.form.find.value.length == 0) {
-		alert('������������w�肵�Ă�������');
+		alert('検索文字列を指定してください');
 		return;
 	}
 
 	if(url.match(/^[^\/]+\/\/[\/\\]{2}/))
-		if(!confirm("�c�[���̎��s�p�X�Ƀl�b�g���[�N�p�X���w�肳��Ă��邽�߃t�@�C���̐������l�b�g���[�N�x�����������܂��B\n"
-			+ "�c�[�������[�J���f�B�X�N�ɃR�s�[���Ď��s���邱�Ƃ��������߂��܂��B\n���s���Ă���낵���ł����H"))
+		if(!confirm("ツールの実行パスにネットワークパスが指定されているためファイルの数だけネットワーク警告が発生します。\n"
+			+ "ツールをローカルディスクにコピーして実行することをおすすめします。\n実行してもよろしいですか？"))
 			return;
 
 	ph.files   = [];
@@ -46,7 +46,7 @@ function Execute() {
 	try {
 		ph.reg     = new RegExp(document.form.find.value);
 	} catch(e) {
-		alert('����������̐��K�\���������ł�');
+		alert('検索文字列の正規表現が無効です');
 		return;
 	}
 	document.form.execute.disabled = true;
@@ -60,7 +60,7 @@ function Phase0() {
 	var em = new Enumerator(folder.Files);
 	for(em.moveFirst(); !em.atEnd(); em.moveNext()) {
 		var file = em.item().Name;
-		if(!file.match(/\.xlsx?$/)) { info('<font color="blue">Excel�t�@�C���ł͂���܂���B�X�L�b�v���܂�</font>:' + file); continue; }
+		if(!file.match(/\.xlsx?$/)) { info('<font color="blue">Excelファイルではありません。スキップします</font>:' + file); continue; }
 		ph.files.push({'path': ph.Folders[0], 'file': file});
 	}
 	em = null;
@@ -75,9 +75,9 @@ function Phase0() {
 	ph.Folders.shift();
 
 	var p = -1;
-	if(ph.Folders.length > 0)    { p = 0; info('�T�u�t�H���_���������Ă��܂�:' + ph.Folders[0]); }
+	if(ph.Folders.length > 0)    { p = 0; info('サブフォルダを検索しています:' + ph.Folders[0]); }
 	else if(ph.files.length > 0) { p = 1; ph.file  = 0; }
-	else info('<font color="red">�Ώۂ̃t�@�C������������܂���ł����B�p�X���������Ă�������</font>');
+	else info('<font color="red">対象のファイルが見当たりませんでした。パスを見直してください</font>');
 	if(p >= 0) setTimeout('Phase' + p + '()', TIMEOUT);
 }
 
@@ -86,7 +86,7 @@ function Phase1() {
 	if(!('file' in ph)) return;
 
 	ph.name    = ph.files[ph.file].name;
-	info('�t�@�C���F"' + ph.files[ph.file].file + '" ���������܂�)');
+	info('ファイル："' + ph.files[ph.file].file + '" を検索します)');
 
 	ph.cn = new Connection(MSExcel12_OLE_Driver, {
 		file:ph.files[ph.file].path + "/" + ph.files[ph.file].file,
@@ -114,21 +114,21 @@ function Phase2() {
 		var line = 0;
 		for(var line = 0; !cn.eof(); cn.next()) {
 			line++;
-			// �P�s�擾
+			// １行取得
 			var values = [];
 			for (var i = 0; i < cn.count(); i++) {
 				var text = cn.item(i);
 				var type = getType(text);
 				if(type === 'Null') text = '';
 				if(type !== 'String') text = new String(text);
-				values[i] = text.replace(/^\s*(.*?)\s*$/, function(s,p){return p})	// �O��̃X�y�[�X������
-					.replace(/\015\012|\012|\015/gm, '')							// ���s������
-					.replace(/\t/gm, '    ')										// tab������
-					.toOneByte();													// ���p�����ɂ���
+				values[i] = text.replace(/^\s*(.*?)\s*$/, function(s,p){return p})	// 前後のスペースを消す
+					.replace(/\015\012|\012|\015/gm, '')							// 改行を消す
+					.replace(/\t/gm, '    ')										// tabを消す
+					.toOneByte();													// 半角文字にする
 			}
-			if(values.join('').length == 0) continue;		// �f�[�^�̂Ȃ��s�͔�΂�
+			if(values.join('').length == 0) continue;		// データのない行は飛ばす
 			var str = values.join("\t");
-			if(str.match(ph.reg)) {							// ���������Ƀq�b�g���邩
+			if(str.match(ph.reg)) {							// 検索条件にヒットするか
 				if(!ph.data) ph.data = [];
 				ph.data.push({
 					file	: ph.files[ph.file].file,
@@ -158,14 +158,14 @@ function Phase2() {
 	if(p >= 0) setTimeout('Phase' + p + '()', TIMEOUT);
 }
 
-//HTML�̍\��====================================================================================================================
+//HTMLの構成====================================================================================================================
 function Phase3() {
 
 	var tbl = document.createElement('table');
 	var thd = document.createElement('thead');
 	var tr,th,td;
 
-	// �w�b�_
+	// ヘッダ
 	tr = document.createElement('tr');
 	th = document.createElement('th'); th.style.fontSize = 'xx-small';
 	th.innerHTML = '#';		tr.appendChild(th);
@@ -183,7 +183,7 @@ function Phase3() {
 	thd.appendChild(tr);
 	tbl.appendChild(thd);
 
-	// �{��
+	// 本体
 	var tbd = document.createElement('tbody');
 	var line = 0;
 	for(var i in ph.data) {
@@ -222,14 +222,14 @@ function Phase3() {
 
 <form name="form">
 <input type="text" name="debug" size=1>
-�����p�X <span id='xls'></span>
+検索パス <span id='xls'></span>
 <div style="font-size:x-small">
-<a href="https://msdn.microsoft.com/ja-jp/library/Cc392020.aspx">����������</a><input type="text" name="find" size=50 title="���K�\���œ��͂��Ă��������B
-�Z�����̉��s�͖�������܂��B
-�S�p�p���͔��p�����Ō������Ă��������B
-�����̃Z���ɂ܂����錟���̓^�u(\t)�ŋ�؂邱�ƂŌ����ł��܂��B">
-	<input type="checkbox" name="subfolder" style="width:10px;height:10px;vertical-align:middle;">&nbsp;�T�u�t�H���_����������&nbsp;
-	<input type="button" name="execute" value=" ���s ">
+<a href="https://msdn.microsoft.com/ja-jp/library/Cc392020.aspx">検索文字列</a><input type="text" name="find" size=50 title="正規表現で入力してください。
+セル内の改行は無視されます。
+全角英数は半角文字で検索してください。
+複数のセルにまたがる検索はタブ(\t)で区切ることで検索できます。">
+	<input type="checkbox" name="subfolder" style="width:10px;height:10px;vertical-align:middle;">&nbsp;サブフォルダも検索する&nbsp;
+	<input type="button" name="execute" value=" 実行 ">
 </div>
 </form>
 
