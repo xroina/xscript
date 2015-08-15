@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
 BEGIN {
-    unshift @INC, $0 =~ /^(.*?)[^\/]+$/;
-    unshift @INC, readlink($0) =~ /^(.*?)[^\/]+$/ if -l $0;
+    unshift @INC, map "$_/lib", $0 =~ /^(.*?)[^\/]+$/;
+    unshift @INC, map "$_/lib", readlink($0) =~ /^(.*?)[^\/]+$/ if -l $0;
 }
 
 use strict;
@@ -10,9 +10,11 @@ use warnings;
 use utf8;
 
 use FileHandle;
-use Data::Dumper;
 
 use LexicalAnalyzer;
+
+binmode STDIN , ':utf8';
+binmode STDOUT, ':utf8';
 
 # パス設定
 my $sdk       = $ENV{BASE_ENV};
@@ -148,7 +150,6 @@ debug("******** $class\::$func");
             }
 #debug("****". $lex->tokens($lex->{begin}, $lex->{end}));
 #debug("****". $lex->tokens($begin, $end));
-#debug("****" . " Dump ". Dumper($arg));
             my $def = '';
             my $ret = '';
             my $this;

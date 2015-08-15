@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
 BEGIN {
-    unshift @INC, $0 =~ /^(.*?)[^\/]+$/;
-    unshift @INC, readlink($0) =~ /^(.*?)[^\/]+$/ if -l $0;
+    unshift @INC, map "$_/lib", $0 =~ /^(.*?)[^\/]+$/;
+    unshift @INC, map "$_/lib", readlink($0) =~ /^(.*?)[^\/]+$/ if -l $0;
 }
 
 use strict;
@@ -12,54 +12,17 @@ use utf8;
 use FileHandle;
 use CGI;
 use Encode;
-use Data::Dumper;
 
+use Utility;
 use LexicalAnalyzer;
 
-binmode STDOUT, ":utf8";
+binmode STDIN , ':utf8';
+binmode STDOUT, ':utf8';
 
 # コマンド引数の取得
-my $param = {path=>[], javascript =>['Utility.js', 'TableOperation.js']};
-foreach(@ARGV) {
-    if(/^-debug$/) { $param->{debug}   = 1; }
-    elsif(/^-i(.*)$/) { if($1) { $param->{input}  = $1; } else { $param->{input_flag} = 1; } }
-    elsif(/^-o(.*)$/) { if($1) { $param->{output} = $1; } else { $param->{output_flag} = 1;} }
-    elsif(/^-t(.*)$/) { if($1) { $param->{title} = $1;  } else { $param->{title_flag} = 1; } }
-    elsif(/^-h/)      { $param->{help} = 1; }
-    elsif(/^-firefox$/)  { $param->{firefox} = 1; }
-    elsif($param->{input_flag}) {
-        $param->{input} = $_;
-        delete $param->{input_flag};
-    }
-    elsif($param->{output_flag}) {
-        $param->{output} = $_;
-        delete $param->{output_flag};
-    }
-    elsif($param->{title_flag}) {
-        $param->{title} = Encode::decode('utf8', $_);
-        delete $param->{title_flag};
-    }
-    else {
-        push @{$param->{path}}, $_;
-    }
-}
-if($param->{input}) {
-    use FileHandle;
-    my $fh = new FileHandle($param->{input}) or die "$param->{input} file open error:$!";
-    while(<$fh>) {
-        chomp;
-        s/\s*(.*?)\s*/$1/;
-        s/#.*$//;
-        next unless $_;
-        if(/^(\w+)\s*=\s*(.*)$/) {
-            $param->{lc $1} = $2 unless $param->{lc $1};
-        } else {
-            push(@{$param->{path}}, $_);
-        }
-    }
-}
+my $param = {javascript =>['Utility.js', 'TableOperation.js']};
+Utility::getStartOption($param, ['debug', 'input=&', 'output=*', 'title=*', 'help', 'xdg']);
 $param->{help} = 1 unless @{$param->{path}};
-
 my($progpath, $prog) = $0 =~ /^(.*?)([^\/]+)$/;
 if($param->{help}) {
     print <<"USAGE";
@@ -68,13 +31,15 @@ usage $prog [OPTION]... [SORCE FILE]...
 ソースファイルを元に試験項目表を作成します。
 
 OPTION:
-  -i [FILE]                 ソースファイルの存在するパスを記したテキストファイルを指定します。
-  -o [HTML FILE]            出力先HTMLを指定します。
+  -i, -input [FILE]         ソースファイルの存在するパスを記したテキストファイルを指定します。
+  -o, -output [HTML]        出力先HTMLを指定します。
                             指定しない場合は、入力したソースファイルから適当に決定されます。
-  -t [TITLE]                HTMLのタイトルを指定します。
+  -t, -title [TITLE]        HTMLのタイトルを指定します。
                             指定しない場合は、入力したソースファイルから適当に決定されます。
-  -firefox                  出力後、FireFoxを自動起動します。
-  -debug                    デバックモード
+  -x, -xdg                  出力後、ディフォルトブラウザを自動起動します。
+  -d, -debug                デバックモードで起動します。
+                            デバックモードでは標準出力に大量のログを出力します
+  -h, -help                 このヘルプを表示します。
 USAGE
     exit 0;
 }
@@ -118,7 +83,13 @@ foreach my $ns(grep{/^(namespace|class)_/} keys %$test) {
 
 CreateHtml();
 
-system "firefox $param->{output} > /dev/null 2>&1 &" if $param->{firefox};
+($progpath) = readlink($0) =~ /^(.*?)([^\/]+)$/ if -l $0;
+if(-d "$progpath/js") {
+    unlink 'js' if -d 'js';
+    symlink "$progpath/js", 'js';
+}
+
+system "xdg-open $param->{output} > /dev/null 2>&1 &" if $param->{xdg};
 
 debug("END");
 

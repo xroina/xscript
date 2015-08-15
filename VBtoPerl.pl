@@ -1,10 +1,9 @@
 #!/usr/bin/perl
 
 BEGIN {
-    unshift @INC, $0 =~ /^(.*?)[^\/]+$/;
-    unshift @INC, readlink($0) =~ /^(.*?)[^\/]+$/ if -l $0;
+    unshift @INC, map "$_/lib", $0 =~ /^(.*?)[^\/]+$/;
+    unshift @INC, map "$_/lib", readlink($0) =~ /^(.*?)[^\/]+$/ if -l $0;
 }
-
 
 use strict;
 use warnings;
@@ -12,6 +11,9 @@ use utf8;
 use FileHandle;
 
 use LexicalAnalyzer;
+
+binmode STDIN , ':utf8';
+binmode STDOUT, ':utf8';
 
 # コマンド引数の取得
 unless($ARGV[0]) {

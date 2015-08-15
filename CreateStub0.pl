@@ -1,8 +1,8 @@
 #/usr/bin/perl
 
 BEGIN {
-    unshift @INC, $0 =~ /^(.*?)[^\/]+$/;
-    unshift @INC, readlink($0) =~ /^(.*?)[^\/]+$/ if -l $0;
+    unshift @INC, map "$_/lib", $0 =~ /^(.*?)[^\/]+$/;
+    unshift @INC, map "$_/lib", readlink($0) =~ /^(.*?)[^\/]+$/ if -l $0;
 }
 
 use strict;
@@ -12,6 +12,9 @@ use utf8;
 use FileHandle;
 
 use LexicalAnalyzer;
+
+binmode STDIN , ':utf8';
+binmode STDOUT, ':utf8';
 
 my $path = "$ENV{HOME}/workspace";
 my $file = "stub.txt";

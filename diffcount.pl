@@ -1,37 +1,22 @@
 #!/usr/bin/perl
 
+BEGIN {
+    unshift @INC, map "$_/lib", $0 =~ /^(.*?)[^\/]+$/;
+    unshift @INC, map "$_/lib", readlink($0) =~ /^(.*?)[^\/]+$/ if -l $0;
+}
+
 use strict;
 use warnings;
 use utf8;
 
+use Utility;
+
 binmode STDIN , ':utf8';
 binmode STDOUT, ':utf8';
 
-my $width   = 115;
-my $padding = 10;
-
-my $param = {};
-foreach(@ARGV) {
-    if(/^-w(\d+)$/)      { if($1) { $width = $1 + 0;       } else { $param->{width_flag} = 1;   } }
-    elsif(/^-p(\d+)$/)   { if($1) { $padding = $1 + 0;     } else { $param->{padding_flag} = 1; } }
-#    elsif(/^-o([^\s])$/) { if($1) { $param->{output} = $1; } else { $param->{output_flag} = 1;  } }
-    elsif($param->{width_flag}) {
-        if(/^\d+$/) { $width = $_ + 0; } else { $param->{help} = 1; }
-        delete $param->{width_flag};
-    }
-    elsif($param->{padding_flag}) {
-        if(/^\d+$/) { $padding = $_ + 0; } else { $param->{help} = 1; }
-        delete $param->{padding_flag};
-    }
-    elsif($param->{output_flag}) {
-        $param->{output} = $_;
-        delete $param->{output_flag};
-    }
-    else {
-        $param->{help} = 1;
-    }
-}
-my($prog) = $0 =~ /([^\/]+)$/;
+my $param = {width=>115, padding=>10};
+Utility::getStartOption($param, ['output=*', 'width=#', 'padding=#', 'help']);
+my($progpath, $prog) = $0 =~ /^(.*?)([^\/]+)$/;
 if($param->{help}) {
     print <<"USAGE";
 usage $prog [OPTION]...
@@ -42,11 +27,11 @@ INPUT
   通常は標準入力を利用します。エンコードはUTF-8でお願いします
 
 OPTION:
-//  -o [FILE]                 出力ファイルを指定します。
-//  <not support>             指定しない場合は、標準出力へ出力します。
-  -w [width]                ソースファイル+行番号の幅を指定します。(省略時115文字)
+  -o, -output [FILE]        出力ファイルを指定します。
+                            指定しない場合は、標準出力へ出力します。
+  -w, -width [width]        ソースファイル+行番号の幅を指定します。(省略時115文字)
                             行番号は4文字＋区切り文字の計5文字使用します
-  -p [padding]              比較元と比較先の間の文字数を指定します。(省略時10文字)
+  -p, -padding [padding]    比較元と比較先の間の文字数を指定します。(省略時10文字)
                             最低でも6文字の偶数を指定してください。
                             (それ以外はどうなっても保証できません。)
 
@@ -65,8 +50,8 @@ USAGE
     exit 0;
 }
 
-my $ln = '+' . ('-' x ($width - 2)) . '+';
-my $padstr  = ' ' x $padding;
+my $ln = '+' . ('-' x ($param->{width} - 2)) . '+';
+my $padstr  = ' ' x $param->{padding};
 my $LINE_LEN = 4;
 my $line = [];
 my $buf = {left=>{line=>[]}, right=>{line=>[]}};
@@ -123,11 +108,11 @@ while(<STDIN>) {
         my $tm   = $2;
         push @$line, '';
         push @$line, join $padstr,
-            Left("file:". substr($buf->{file}, -($width - 5)), $width),
-            Left(substr($file, -$width), $width);
+            Left("file:". substr($buf->{file}, -($param->{width} - 5)), $param->{width}),
+            Left(substr($file, -$param->{width}), $param->{width});
         push @$line, join $padstr,
-            Left("time:$buf->{tm}", $width),
-            Left($tm, $width);
+            Left("time:$buf->{tm}", $param->{width}),
+            Left($tm, $param->{width});
         delete $buf->{step};
         delete $buf->{stepcount};
     }
@@ -158,15 +143,15 @@ while(<STDIN>) {
     my $rightlen = @{$buf->{right}->{line}};
     if($leftlen && $rightlen) {     # 更新
         my $len = $leftlen > $rightlen ? $leftlen : $rightlen;
-        my $pad = '-' x int(($padding - 6) / 2);
-        $pad =  Left("$pad(変更)$pad", $padding);
+        my $pad = '-' x int(($param->{padding} - 6) / 2);
+        $pad =  Left("$pad(変更)$pad", $param->{padding});
         splice @$line, $index, 0, ("$ln$padstr$ln",
             map{
                 my $left  = $buf->{left}->{line}->[$_];
                 my $right = $buf->{right}->{line}->[$_];
                 $left  = $ln if $leftlen  == $_;
                 $right = $ln if $rightlen == $_;
-                $left = Left('', $width) unless defined $left;
+                $left = Left('', $param->{width}) unless defined $left;
                 $right = '' unless defined $right;
                 my $ret = "$left$pad$right";
                 $pad = $padstr;
@@ -174,22 +159,22 @@ while(<STDIN>) {
             } (0..$len));
     }
     elsif($leftlen) {               # 削除
-        my $pad = '-' x int(($padding - 6) / 2);
-        $pad =  Left("$pad(削除)$pad", $padding);
+        my $pad = '-' x int(($param->{padding} - 6) / 2);
+        $pad =  Left("$pad(削除)$pad", $param->{padding});
         splice @$line, $index, 0, ($ln,
             map{
                 my $left  = $buf->{left}->{line}->[$_];
-                $left = $ln if $leftlen  == $_;
+                $left = $ln if $leftlen == $_;
                 my $ret = "$left$pad";
                 $pad = '';
                 $ret;
             } (0..$leftlen));
     }
     elsif($rightlen) {              # 追加
-        my $pad = '-' x int(($padding - 6) / 2);
-        $pad =  Left("$pad(追加)$pad", $padding);
-        my $left = Left('', $width);
-        my $leftline = '-' x $width;
+        my $pad = '-' x int(($param->{padding} - 6) / 2);
+        $pad =  Left("$pad(追加)$pad", $param->{padding});
+        my $left = Left('', $param->{width});
+        my $leftline = '-' x $param->{width};
         splice @$line, $index, 0, ("$left$padstr$ln",
             map{
                 my $right = $buf->{right}->{line}->[$_];
@@ -224,7 +209,7 @@ exit;
 
 sub linemake {
     my($count, $text) = @_;
-    return Left(substr((' ' x $LINE_LEN).$count, -$LINE_LEN).":$text", $width-2);
+    return Left(substr((' ' x $LINE_LEN).$count, -$LINE_LEN).":$text", $param->{width} - 2);
 }
 
 sub sumcount {

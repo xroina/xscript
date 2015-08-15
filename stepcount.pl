@@ -1,62 +1,20 @@
 #!/usr/bin/perl
 
+BEGIN {
+    unshift @INC, map "$_/lib", $0 =~ /^(.*?)[^\/]+$/;
+    unshift @INC, map "$_/lib", readlink($0) =~ /^(.*?)[^\/]+$/ if -l $0;
+}
+
 use strict;
 use warnings;
 use utf8;
 
+binmode STDIN , ':utf8';
 binmode STDOUT, ':utf8';
 
-# ソースファイル解析クラス(元ソース SourceFile.cls)
-
-## ソース解析中の状態変数（1キャラクタずつ解析していく）
-my $ssEmpty = 0;                            # 初期
-my $ssCode  = 1;                            # 有効なソース
-my $ssSingleLineComment = 2;                # シングル行コメント「//...」
-my $ssMultiLineComment = 3;                 # マルチ行コメント 「/* ... */」
-my $ssDoubleQuotation = 4;                  # 二重引用        「"..."」
-my $ssSingleQuotation = 5;                  # 引用            「'...'」
-
-## ソースの１行のタイプ
-my $stEmpty = 1;                            # 空白行
-my $stComment = 2;                          # コメント行
-my $stCode = 3;                             # 有効行
-
-my $param = {path=>[], javascript =>['Utility.js', 'TableOperation.js']};
-foreach(@ARGV) {
-    if(/^-i(.*)$/)    { if($1) { $param->{input}  = $1; } else { $param->{input_flag} = 1; } }
-    elsif(/^-o(.*)$/) { if($1) { $param->{output} = $1; } else { $param->{output_flag} = 1;} }
-    elsif(/^-c(.*)$/) { if($1) { $param->{csv}    = $1; } else { $param->{csv_flag} = 1;} }
-    elsif(/^-h/)      { $param->{help} = 1; }
-    elsif($param->{input_flag}) {
-        $param->{input} = $_;
-        delete $param->{input_flag};
-    }
-    elsif($param->{output_flag}) {
-        $param->{output} = $_;
-        delete $param->{output_flag};
-    }
-    elsif($param->{csv_flag}) {
-        $param->{csv} = $_;
-        delete $param->{csv_flag};
-    }
-    else {
-        push(@{$param->{path}}, $_);
-    }
-}
-if($param->{input}) {
-    use FileHandle;
-    my $fh = new FileHandle($param->{input}) or die "$param->{input} file open error:$!";
-    while(<$fh>) {
-        chomp;
-        s/\s*(.*?)\s*/$1/;
-        s/#.*$//;
-        next if length($_) == 0;
-        push(@{$param->{path}}, $_);
-    }
-}
-
+my $param = {javascript =>['Utility.js', 'TableOperation.js']};
+Utility::getStartOption($param, ['debug', 'input=&', 'output=*', 'csv=*', 'help', 'xdg']);
 $param->{help} = 1 unless @{$param->{path}};
-
 my($progpath, $prog) = $0 =~ /^(.*?)([^\/]+)$/;
 if($param->{help}) {
     print <<"USAGE";
@@ -74,12 +32,10 @@ OPTION:
 FILE:
   ソースファイルのパスを指定します。
 
-NOTE
-  パスは勝手に再帰的に検索してしまいますので、フォルダ内にtestコードがあるとそれもカウント対象になります
-  ので注意してください。
+NOTE:
+  パスは再帰的に検索ますので、フォルダ内にtestコードがあるとそれもカウント対象になります。
 
 USAGE
-
     exit 0;
 }
 
@@ -95,7 +51,6 @@ USAGE
 
 # ここから本体
 
-
 my $step = {};
 
 print "file, StepCount, CodeLineCount, CommentLineCount, EmptyLineCount, LineCount\n";
@@ -108,6 +63,8 @@ if(-d "$progpath/js") {
     unlink 'js' if -d 'js';
     symlink "$progpath/js", 'js';
 }
+
+system "xdg-open $param->{output} > /dev/null 2>&1 &" if $param->{xdg};
 
 exit;
 
@@ -368,6 +325,22 @@ sub ParLine {
 }
 
 # ここからがエクセルからの移植部位
+# ソースファイル解析クラス(元ソース SourceFile.cls)
+
+## ソース解析中の状態変数（1キャラクタずつ解析していく）
+my $ssEmpty = 0;                            # 初期
+my $ssCode  = 1;                            # 有効なソース
+my $ssSingleLineComment = 2;                # シングル行コメント「//...」
+my $ssMultiLineComment = 3;                 # マルチ行コメント 「/* ... */」
+my $ssDoubleQuotation = 4;                  # 二重引用        「"..."」
+my $ssSingleQuotation = 5;                  # 引用            「'...'」
+
+## ソースの１行のタイプ
+my $stEmpty = 1;                            # 空白行
+my $stComment = 2;                          # コメント行
+my $stCode = 3;                             # 有効行
+
+
 # ソースファイル読み取る処理
 sub LoadFile {
     my($FilePath) = @_;

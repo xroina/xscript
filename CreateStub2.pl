@@ -1,15 +1,20 @@
 #!/usr/bin/perl
 
+BEGIN {
+    unshift @INC, map "$_/lib", $0 =~ /^(.*?)[^\/]+$/;
+    unshift @INC, map "$_/lib", readlink($0) =~ /^(.*?)[^\/]+$/ if -l $0;
+}
+
 use strict;
 use warnings;
 use utf8;
 
-BEGIN { unshift @INC, ("$ENV{HOME}/bin", "$ENV{HOME}/workspace/develop/MFOP/test/MFOPTESTCM0010/script"); }
-
 use FileHandle;
-use Data::Dumper;
 
 use LexicalAnalyzer;
+
+binmode STDIN , ':utf8';
+binmode STDOUT, ':utf8';
 
 # パス設定
 my $workspace = "$ENV{HOME}/workspace";
@@ -152,7 +157,6 @@ while(my($class, $s) = each %$stub) {
             }
 #debug("****". $lex->tokens($lex->{begin}, $lex->{end}));
 #debug("****". $lex->tokens($begin, $end));
-#debug("****" . " Dump ". Dumper($arg));
             my $def = '';
             my $ret = '';
             my $this;

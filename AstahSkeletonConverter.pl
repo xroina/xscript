@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
 BEGIN {
-    unshift @INC, $0 =~ /^(.*?)[^\/]+$/;
-    unshift @INC, readlink($0) =~ /^(.*?)[^\/]+$/ if -l $0;
+    unshift @INC, map "$_/lib", $0 =~ /^(.*?)[^\/]+$/;
+    unshift @INC, map "$_/lib", readlink($0) =~ /^(.*?)[^\/]+$/ if -l $0;
 }
 
 use strict;
@@ -11,59 +11,70 @@ use utf8;
 
 use FileHandle;
 use Encode;
+
+use Utility;
 use LexicalAnalyzer;
 
-binmode STDOUT,":utf8";
+binmode STDIN , ':utf8';
+binmode STDOUT, ':utf8';
 
 # コマンド引数の取得
-unless($ARGV[0]) {
-    my($prog) = $0 =~ /([^\/]+)$/;
-    print "usage $prog [-I[find path]] [-N[namespace name(jp)] [file name(not expend)|*]\n";
+my $param = {namespace=>'TODO(入力してください)'};
+Utility::getStartOption($param, ['debug', 'include=@', 'namespace=*', 'help'], 'file');
+$param->{help} = 1 unless @{$param->{path}};
+my($progpath, $prog) = $0 =~ /^(.*?)([^\/]+)$/;
+if($param->{help}) {
+    print <<"USAGE";
+usage $prog [OPTION]... [SORCE]...
+
+astahで出力されるスケルトンをDoxygen対応方式に変換します。
+
+OPTION:
+  -i, -include [PATH]       ソース及びヘッダファイルの存在するパスを指定します。
+  -n, -namespace [NAME]     ネームスペースの日本語名を指定します。
+                            指定しない場合は、TODOになります。
+  -d, -debug                デバックモードで起動します。
+                            デバックモードでは標準出力に大量のログを出力します
+  -h, -help                 このヘルプを表示します。
+NOTE:
+  [SORCE]には、ソースファイル名を拡張子を除いた部分を指定します。
+  フォルダ内すべてを指定する場合は"*"を指定してください。
+USAGE
     exit 0;
 }
-my $ns_name = 'TODO(入力してください)';
-my $path = [];
-my $file = [];
-my $debug;
-foreach(@ARGV) {
-    if(/^-I(.*)/) { push @$path, $1 }
-    if(/^-N(.*)/) { $ns_name = Encode::decode('utf8', $1);}
-    elsif(/^-debug$/) { $debug = 1 }
-    else { push @$file, $_ }
-}
-push @$path, "." unless @$path;
-print "$ENV{PWD}\n" if $debug;
 
+$param->{include} = ["."] unless 'ARRAY' eq ref $param->{include};
+
+my $conv = {};
 my $glob = [];
-foreach my $p(@$path) {
-    foreach my $f(@$file) {
+foreach my $p(@{$param->{include}}) {
+    foreach my $f(@{$param->{file}}) {
         push @$glob, "$p/$f.*";
     }
 }
-$glob = join ' ', @$glob;
-my $conv = {};
-foreach(glob $glob) {
+foreach(glob join ' ', @$glob) {
     next unless /([^\/]*)\.(cpp|h)$/;
     $conv->{$1}->{$2}->{path} = $_;
     $conv->{$1}->{$2}->{file} = "$1.$2";
 }
 
 foreach my $class(keys %$conv) {
-#print "$class $conv->{$class}->{h}->{path}\n";
-    my $hlex = new LexicalAnalyzer({file=>$conv->{$class}->{h}->{path}, debug=>$debug});
-#print "h:".$hlex->string(), "\n";
+    my $hlex = new LexicalAnalyzer({file=>$conv->{$class}->{h}->{path}, debug=>$param->{debug}});
     next if $hlex->begin->value eq 'comment_/*!';   # 処理済みなら処理しない
-    $hlex->AnalyzeCPP();
-#print "$class $conv->{$class}->{cpp}->{path}\n";
+    $hlex->AnalyzeCPP;
     my $clex;
     if($conv->{$class}->{cpp}) {
-        $clex = new LexicalAnalyzer({file=>$conv->{$class}->{cpp}->{path}, debug=>$debug});
-#print "cpp:". $clex->string(), "\n";
-        $clex->AnalyzeCPP();
+        $clex = new LexicalAnalyzer({file=>$conv->{$class}->{cpp}->{path}, debug=>$param->{debug}});
+        $clex->AnalyzeCPP;
     }
-#print "end lex\n";
+
     # class コメント取得
-    my $t = $hlex->{begin}->next('class_class');
+    my $t = $hlex->{begin}->next('class_(class|struct|enum|union)');
+    my $class_jp = 'クラス';
+    $class_jp = '構造体' if 'struct' eq $t->text;
+    $class_jp = '列挙体' if 'enum'   eq $t->text;
+    $class_jp = '共用体' if 'union'  eq $t->text;
+    
     my $class_name = $t->next('define_.*')->text;
 
     my $end   = $t->prev('comment_.*');
@@ -72,22 +83,22 @@ foreach my $class(keys %$conv) {
 #print"get comment\n";
     my $lex = getComment($begin, $end);
     $begin = $begin->prev->next;
-print"get comment > " . $lex->string() . "\n"  if $debug;
+print"get comment > " . $lex->string . "\n"  if $param->{debug};
     # classコメント
     my $sp = ' ' x 20;
     my $comment = [];
     push @$comment,
         "", "\n",
-        "//---- クラス定義", "\n",
+        "//---- ${class_jp}定義", "\n",
         "/*!", "\n",
         " *", "\n",
         " * \@class $class_name $conv->{$class}->{h}->{file} \"inc/$conv->{$class}->{h}->{file}\"", "\n",
         " *", "\n",
-        " * \@b   クラス論理名", "\n",
+        " * \@b   ${class_jp}論理名", "\n",
         " *", "\n",
         " *      $lex->{name}", "\n",
         " *", "\n",
-        " * \@brief $lex->{name}のクラスを定義する。", "\n",
+        " * \@brief $lex->{name}の${class_jp}を定義する。", "\n",
         " *", "\n",
         " * \@par 概要説明", "\n",
         " *", "\n",
@@ -120,10 +131,7 @@ print"get comment > " . $lex->string() . "\n"  if $debug;
         " */", "\n"
     ;
     $begin->insert(@$comment);
-    $end->next('class_class')->next('space_\n')->insert(
-        new Token($sp, 'space'),
-        new Token("/// $lex->{name}", "comment")
-    );
+    $t->next('space_\n')->insert($sp, "/// $lex->{name}", "comment");
 
     foreach($hlex, $clex) {
         next unless $_;
@@ -150,15 +158,12 @@ print"get comment > " . $lex->string() . "\n"  if $debug;
 
         # includeコメント
         $inc->insert("//---- ヘッダファイルインクルード", "\n");
-        $incend->insert(
-                "", "\n",
-                "//---- 他クラス定義", "\n",
-        );
+        $incend->insert("", "\n", "//---- 他クラス定義", "\n");
 
         # namespaseコメント
         if(!$ns->eof) {
             my $name = $ns->next('(define_.*|op_[;\{])')->text;
-            my $name_jp = $ns_name;
+            my $name_jp = $param->{namespace};
             $name = '(not define)', $name_jp = 'なし' if !$name || $name =~ /[;\{]/;
             $ns->insert(
                 "//---- 名前空間定義", "\n",
@@ -177,7 +182,7 @@ print"get comment > " . $lex->string() . "\n"  if $debug;
         my $begin = $end->prev('!(comment|space)_.*')->next('comment_.*');
 #print "get $t->{text}($t->{file}:$t->{line}) comment\n" . $hlex->print($begin, $end). "\n";
         my $lex = getComment($begin, $end);
-print"get $t->{text}($t->{file}:$t->{line}) comment > " . $lex->string() . "\n" if $debug;
+print"get $t->{text}($t->{file}:$t->{line}) comment > " . $lex->string . "\n" if $param->{debug};
         my $name = $class_name . "::" . $t->text;
         $method->{$t->text} = $lex->{name};
 
@@ -198,10 +203,7 @@ print"get $t->{text}($t->{file}:$t->{line}) comment > " . $lex->string() . "\n" 
             my $spc = ' ' x ($cpp ? 8 : 12);
             my $t = $_->next('op_\(')->next;
             next if $t->value eq 'op_)';
-            $t->insert(
-                new Token("\n", 'space'),
-                new Token($spc, 'space')
-            );
+            $t->insert("\n", $spc);
 
             while(!$t->eof) {
                 $t = $t->next('op_[,\)]');
@@ -209,7 +211,7 @@ print"get $t->{text}($t->{file}:$t->{line}) comment > " . $lex->string() . "\n" 
                 push @$prm, $valiable if $cpp;
                 $t = $t->next if $t->value eq 'op_,';
 
-                $t->insert(new Token($sp, 'space'), new Token("///< TODO($valiable)", 'comment'), new Token("\n", 'space'));
+                $t->insert($sp, "///< TODO($valiable)", "\n");
                 if($t->value eq 'op_)') {
                     $t->insert(new Token("    ", 'space')) unless $cpp;
                     last;
@@ -272,25 +274,22 @@ print"get $t->{text}($t->{file}:$t->{line}) comment > " . $lex->string() . "\n" 
     # ヘッダのメソッド名の後ろにコメントを書く
     for(my $t = $hlex->begin->next('method_.*'); !$t->eof; $t = $t->next('method_.*')) {
         my $name = $method->{$t->text};
-        $t->next('space_\n')->insert(
-            new Token($sp, 'space'),
-            new Token("///< $name", "comment")
-        );
+        $t->next('space_\n')->insert($sp, "///< $name");
     }
 
     foreach($hlex, $clex) {
         next unless $_;
-        if($debug) {
+        if($param->{debug}) {
             print "[[[ outfile ]]] $_->{file} ================================================\n";
-            for(my $t = $_->begin(); !$t->eof(); $t = $t->next()) {
-                print $t->text() if $debug;
+            for(my $t = $_->begin; !$t->eof; $t = $t->next) {
+                print $t->text;
             }
             print "[[[ EOF ]]]\n";
         } else {
             my $fh = new FileHandle($_->{file}, 'w') or die "$_->{file} file open error:$!\n";
             $fh->binmode(":utf8");
-            for(my $t = $_->begin(); !$t->eof(); $t = $t->next()) {
-                $fh->print($t->text());
+            for(my $t = $_->begin; !$t->eof; $t = $t->next) {
+                $fh->print($t->text);
             }
             $fh->close();
         }
@@ -310,8 +309,8 @@ sub getComment {
     # コメント解析
     $comment =~ s/^\/\*//;
     $comment =~ s/\*\/$//;
-print "commnet = $comment\n" if $debug;
-    my $lex = new LexicalAnalyzer({code=>$comment, debug=>$debug});
+print "commnet = $comment\n" if $param->{debug};
+    my $lex = new LexicalAnalyzer({code=>$comment, debug=>$param->{debug}});
     # 日本語名取得とその行削除
     my $jp = $lex->begin->next('ident_.*');
     for(my $t = $jp->prev('space_\n'); !$t->eof($jp); $t = $t->next) {
@@ -325,7 +324,7 @@ print "commnet = $comment\n" if $debug;
             $t->delete;
         }
     }
-     if($debug) {
+     if($param->{debug}) {
         print "commnet = \n";
         for(my $t = $lex->begin; !$t->eof; $t = $t->next) {
             print "'".$t->value."'"
@@ -333,4 +332,3 @@ print "commnet = $comment\n" if $debug;
     }
     return $lex;
 }
-
