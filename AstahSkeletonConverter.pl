@@ -13,7 +13,7 @@ use FileHandle;
 use Encode;
 
 use Utility;
-use LexicalAnalyzer;
+use CppAnalyzer;
 
 binmode STDIN , ':utf8';
 binmode STDOUT, ':utf8';
@@ -59,14 +59,10 @@ foreach(glob join ' ', @$glob) {
 }
 
 foreach my $class(keys %$conv) {
-	my $hlex = new LexicalAnalyzer({file=>$conv->{$class}->{h}->{path}, debug=>$param->{debug}});
-	next if $hlex->begin->value eq 'comment_/*!';	# 処理済みなら処理しない
-	$hlex->AnalyzeCPP;
+	my $hlex = new CppAnalyzer({file=>$conv->{$class}->{h}->{path}, debug=>$param->{debug}});
 	my $clex;
-	if($conv->{$class}->{cpp}) {
-		$clex = new LexicalAnalyzer({file=>$conv->{$class}->{cpp}->{path}, debug=>$param->{debug}});
-		$clex->AnalyzeCPP;
-	}
+	next if $hlex->begin->value eq 'comment_/*!';	# 処理済みなら処理しない
+	$clex = new CppAnalyzer({file=>$conv->{$class}->{cpp}->{path}, debug=>$param->{debug}}) if $conv->{$class}->{cpp};
 
 	# class コメント取得
 	my $t = $hlex->{begin}->next('class_(class|struct|enum|union)');

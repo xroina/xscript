@@ -1,4 +1,6 @@
 #===============================================================================
+# トークンアナライザ
+#===============================================================================
 package TokenAnalyzer;
 
 BEGIN {
@@ -11,23 +13,27 @@ use warnings;
 use utf8;
 use Token;
 
-
 # オブジェクト作成
 sub new {
 	my($this, $params) = @_;
 	$this = bless {
-		begin=>new Token(),
-		end=>new Token(),
-		esc=>'\\',
-		comment=>[
+		begin => new Token(),
+		end   => new Token(),
+		esc   => '\\',
+		comment => [
 			{begin=>'/*', end=>'*/'},
 			{begin=>'//', end=>'\n'}
 		]
 	}, $this;
 	$this->{begin}->add($this->{end});
 	$this->{$_} = $params->{$_} foreach keys %$params;
-
 	return $this;
+}
+
+# デバック用プリント
+sub debug {
+	my($this, @msg) = @_;
+	print '[TokenAnalyzer] ' . join(',', @msg). "\n" if $this->{debug};
 }
 
 # トークンの先頭を取得

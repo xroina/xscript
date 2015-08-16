@@ -153,16 +153,7 @@ sub end {
 # デバック用文字列取得
 sub debug {
 	my($this) = @_;
-	"[$this] text=".$this->text." kind=".$this->kind." prev=".$this->prev." next=".$this->next;
-}
-
-sub line {
-	my($this) = @_;
-	my $line = 1;
-	for(my $t = $this->begin; !$t->eof($this); $t = $t->next) {
-		$line++ if $t->text =~ /\n/;
-	}
-	return $line;
+	"[$this] this=".$this->value." prev=".$this->value." next=".$this->value;
 }
 
 1;

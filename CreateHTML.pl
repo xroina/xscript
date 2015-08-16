@@ -14,7 +14,7 @@ use CGI;
 use Encode;
 
 use Utility;
-use LexicalAnalyzer;
+use CppAnalyzer;
 
 binmode STDIN , ':utf8';
 binmode STDOUT, ':utf8';
@@ -52,8 +52,7 @@ $param->{title}	 = $title		 unless $param->{title};
 my $src = {};
 foreach my $path(@{Utility::getRecursivePath($param->{path}, 'h|hpp|c|cc|cpp')}) {
 	my($file, $class) = $path =~ m#(([^/]+)\..*)$#;
-	$src->{$file}->{lex} = new LexicalAnalyzer({file=>$path, debug=>$param->{debug}});
-	$src->{$file}->{lex}->AnalyzeCPP();
+	$src->{$file}->{lex} = new CppAnalyzer({file=>$path, debug=>$param->{debug}});
 }
 
 my $lex;

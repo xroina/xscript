@@ -13,7 +13,7 @@ use FileHandle;
 use Encode;
 
 use Utility;
-use LexicalAnalyzer;
+use CppAnalyzer;
 
 binmode STDIN , ':utf8';
 binmode STDOUT, ':utf8';
@@ -55,9 +55,10 @@ my $namespace_name = '.*';		# TODO namespace処理
 my $test = {path=>[]};
 foreach my $path(@{Utility::getRecursivePath($param->{path}, 'h|hpp|c|cc|cpp')}) {
 	my($file, $name, $h) = $path =~ m#(([^/]+)\.(.+?))$#;
-	my $lex = new LexicalAnalyzer({file=>$path, debug=>$param->{debug}});
-	$lex->AnalyzeCPP();
-	push @{$test->{path}}, {path=>$path, file=>$file, name=>$name, h=>$h, lex =>$lex};
+	push @{$test->{path}}, {
+		path=>$path, file=>$file, name=>$name, h=>$h,
+		lex =>new CppAnalyzer({file=>$path, debug=>$param->{debug}})
+	};
 }
 
 my $lex;

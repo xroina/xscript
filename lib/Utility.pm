@@ -138,6 +138,7 @@ sub getRecursivePath {
 	foreach my $path(@$in) {
 		if(-d $path) {
 			$path =~ s#/$##;
+			no warnings 'recursion';
 			getRecursivePath($_, $ext) foreach glob "$path/*";
 		}
 		elsif(-f $path) {
@@ -151,6 +152,7 @@ sub getRecursivePath {
 			push @$ret, $path;
 		}
 		elsif($path =~ /\*/) {
+			no warnings 'recursion';
 			getRecursivePath($_, $ext) foreach glob $path;
 		}
 	}
