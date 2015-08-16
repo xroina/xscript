@@ -15,12 +15,16 @@ use Token;
 # オブジェクト作成
 sub new {
     my($this, $params) = @_;
-    $this = bless {begin=>new Token(), end=>new Token(), esc=>'\\',
-        comment=>[ {begin=>'/*', end=>'*/'}, {begin=>'//', end=>'\n'} ]
+    $this = bless {
+    	begin=>new Token(),
+    	end=>new Token(),
+    	esc=>'\\',
+        comment=>[
+        	{begin=>'/*', end=>'*/'},
+        	{begin=>'//', end=>'\n'}
+        ]
     }, $this;
     $this->{begin}->add($this->{end});
-#print "begin:",$this->{begin}->debug, "\n";
-#print "end:",$this->{end}->debug, "\n";
     $this->{$_} = $params->{$_} foreach keys %$params;
 
     return $this;
