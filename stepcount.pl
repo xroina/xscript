@@ -8,6 +8,7 @@ BEGIN {
 use strict;
 use warnings;
 use utf8;
+use Utility;
 
 binmode STDIN , ':utf8';
 binmode STDOUT, ':utf8';
@@ -23,11 +24,12 @@ usage $prog [OPTION]... [FILE]...
 ソースのステップ数をカウントします。カウント方法は「C++ソースステップカウンタ.xls」に準じます。
 
 OPTION:
-  -i [FILE]                 ソースファイルの存在するパスを記したテキストファイルを指定します。
-  -o [FILE]                 出力HTMLファイルを指定します。
+  -i, -input [FILE]         ソースファイルの存在するパスを記したテキストファイルを指定します。
+  -o, -output [FILE]        出力HTMLファイルを指定します。
                             指定しない場合は、stepcount_YYYYMMDDhhmmsshtml になります。
-  -c [FILE]                 出力CSVファイルを指定します。指定しない場合は、標準出力へ出力します。
-  -h                        このヘルプを表示します。
+  -c, -csv [FILE]           出力CSVファイルを指定します。指定しない場合は、標準出力へ出力します。
+  -x, -xdg                  出力後、ディフォルトブラウザを自動起動します。
+  -h, -help                 このヘルプを表示します。
 
 FILE:
   ソースファイルのパスを指定します。
@@ -40,19 +42,17 @@ USAGE
 }
 
 {	# 日付算出処理
-	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+	my ($sec, $min, $hour, $day, $mon, $year) = localtime(time);
 	$year += 1900;
 	$mon += 1;
-	$param->{date} = "$year/$mon/$mday-$hour:$min:$sec";
+	$param->{date} = "$year/$mon/$day-$hour:$min:$sec";
 	unless($param->{output}) {
-		$param->{output} = sprintf("stepcount_%04d%02d%02d%02d%02d%02d.html", $year, $mon, $mday, $hour, $min, $sec);
+		$param->{output} = sprintf("stepcount_%04d%02d%02d%02d%02d%02d.html", $year, $mon, $day, $hour, $min, $sec);
 	}
 }
 
 # ここから本体
-
 my $step = {};
-
 # パスを再帰的に検索し、ステップカウントを実施する。
 print "file, StepCount, CodeLineCount, CommentLineCount, EmptyLineCount, LineCount\n";
 foreach my $path(@{Utility::getRecursivePath($param->{path}, 'h|hpp|c|cc|cpp')}) {
@@ -71,14 +71,14 @@ foreach my $path(@{Utility::getRecursivePath($param->{path}, 'h|hpp|c|cc|cpp')})
 
 	# 集計用ハッシュへ登録する
 	$step->{$path} = {
-		file					=> $file,
-		class					=> $class,
-		name					=> $brief,
-		StepCount				=> $StepCount,
-		CodeLineCount			=> $CodeLineCount,
-		CommentLineCount		=> $CommentLineCount,
-		EmptyLineCount			=> $EmptyLineCount,
-		LineCount				=> $LineCount,
+		file				=> $file,
+		class				=> $class,
+		name				=> $brief,
+		StepCount			=> $StepCount,
+		CodeLineCount		=> $CodeLineCount,
+		CommentLineCount	=> $CommentLineCount,
+		EmptyLineCount		=> $EmptyLineCount,
+		LineCount			=> $LineCount,
 	};
 }
 
@@ -89,7 +89,6 @@ Utility::createSymLink();
 system "xdg-open $param->{output} > /dev/null 2>&1 &" if $param->{xdg};
 
 exit;
-
 
 # ステップカウントの結果をHTMLに出力する。
 sub CreateHTML {
@@ -108,7 +107,7 @@ sub CreateHTML {
 				'http-equiv'=>'Content-Type',
 				-content	=>'text/html; charset=UTF-8'}),
 			$q->meta({-charset=>'UTF-8'}),
-			$q->link({-rel=>'stylesheet', href=>'css/base.css'}),
+			$q->Link({-rel=>'stylesheet', href=>'css/base.css'}),
 			(map{ $q->script({-type=>'text/javascript', -src=>"js/$_"}, "") } @{$param->{javascript}}),
 			$q->script({-langage=>"text/javascript"}, "<!--\n", <<'JAVASCRIPT'
 
@@ -183,11 +182,11 @@ JAVASCRIPT
 
 	$fh->print($q->start_thead({-id=>'table_head'}), "\n");
 	$fh->print($q->start_Tr({-align=>'center', -valign=>'top'}), "\n");
-	$fh->print($q->th(['no','path','','','','','','','','','','','','','','','','file','Class','和名','行数',	'',	   '',		'',	   '',	  '比率',	'',	  '',		'',	   '新規<br>(step)']), "\n");
+	$fh->print($q->th(['no','path','','','','','','','','','','','','','','','','file','Class','和名','行数',    '',    '',      '',    '',    '比率',   '',   '',        '',    '新規<br>(step)']), "\n");
 	$fh->print($q->end_Tr, "\n");
 
 	$fh->print($q->start_Tr({-align=>'center', -valign=>'top'}), "\n");
-	$fh->print($q->th(['', '',	   '','','','','','','','','','','','','','','','',	   '',	   '',	 'ステップ','有効','コメント','空白','合計','ステップ','有効','コメント','空白','']), "\n");
+	$fh->print($q->th(['', '',	   '','','','','','','','','','','','','','','','',    '',     '',   'ステップ','有効','コメント','空白','合計','ステップ','有効','コメント','空白','']), "\n");
 	$fh->print($q->end_Tr, "\n");
 	$fh->print($q->end_thead, "\n");
 
@@ -279,20 +278,6 @@ sub ParLine {
 # ここからがエクセルからの移植部位
 # ソースファイル解析クラス(元ソース SourceFile.cls)
 
-## ソース解析中の状態変数（1キャラクタずつ解析していく）
-my $ssEmpty = 0;							# 初期
-my $ssCode	= 1;							# 有効なソース
-my $ssSingleLineComment = 2;				# シングル行コメント「//...」
-my $ssMultiLineComment = 3;					# マルチ行コメント 「/* ... */」
-my $ssDoubleQuotation = 4;					# 二重引用		  「"..."」
-my $ssSingleQuotation = 5;					# 引用			  「'...'」
-
-## ソースの１行のタイプ
-my $stEmpty = 1;							# 空白行
-my $stComment = 2;							# コメント行
-my $stCode = 3;								# 有効行
-
-
 # ソースファイル読み取る処理
 sub LoadFile {
 	my($FilePath) = @_;
@@ -300,353 +285,232 @@ sub LoadFile {
 	# 1.処理前チェック
 	# 1.1.フォルダの場合処理できない
 	# 1.2.処理済みの場合処理する必要はない
-#	 return if $SourceTxt ne "";
 
 	# 2.ファイル内容読取
 	### 2.1.エンコード間違ったより異常発生対処
 	# 2.2.ADODBの機能を利用して読み取る
 	use FileHandle;
-	my $stm = new FileHandle($FilePath) or die "$FilePath file open error:$!";
-	$stm->binmode();
-	$SourceTxt .= $_ while(<$stm>);
-	$stm->close();
+	my $fh = new FileHandle($FilePath) or die "$FilePath file open error:$!\n";
+	$fh->binmode;
+	$SourceTxt .= join '', <$fh>;
+	$fh->close;
 	# 2.3.改行コード統一処理（LinuxでもWindowsでも同様に対応できるように、改行をLineFeed「"\n"」に統一）
 	$SourceTxt =~ s/\015\012|\012|\015/\n/gm;
 
+	# エンコード自動変更(UTF-8)
 	use Encode::Guess qw/sjis euc-jp 7bit-jis/;
 	my $decoder = Encode::Guess->guess($SourceTxt);
-	die $decoder unless ref $decoder;
+	die "Encode::Guess Error:decoder=$decoder:error=$!\n" unless ref $decoder;
 	$SourceTxt = $decoder->decode($SourceTxt);
 
 	return $SourceTxt;
-}
-
-# 行結末処理
-# パラメータ：ソース解析状態、行タイプ、行の最初文字、行の最後文字、ステップ数、有効行数、コメント行数、空白行数
-sub FinishLine {
-	my ($ss, $st, $firstCodeCharInLine, $lastCodeCharInLine, $stepLines, $codeLines, $commentLines, $emptyLines) = @_;
-	# 1.行数カウントアップ処理
-	# 1.1.ソース解析状態によって違う処理をする
-	# 1.2.有効行の場合
-	if($st == $stCode) {
-		# 1.2.1.有効行数カウントアップ
-		$$codeLines++;
-		# 1.2.2.最初文字と最後文字によってステップ数カウントアップする
-		$$stepLines++ if $$lastCodeCharInLine =~ /^[;\{\}:]$/ || $$firstCodeCharInLine eq "#";
-		# 1.2.3.行の最初文字と行の最後文字をリセットする
-		$$firstCodeCharInLine = '';
-		$$lastCodeCharInLine = '';
-	}
-	# 1.3.コメントの場合
-	elsif($st == $stComment) {
-		# 1.3.1.コメント行数カウントアップ
-		$$commentLines++;
-	}
-	# 1.4.空白行の場合
-	elsif($st == $stEmpty) {
-		# 1.4.1.空白行行数カウントアップ
-		$$emptyLines++;
-	}
 }
 
 # ステップ、有効行、コメント行、空白行、それぞれの数値と合計を計算する処理
 sub CountLines {
 	my($SourceTxt) = @_;						# ソースファイルの全内容
 
-	my $i = 0; # Long								# ループ変数
-	my $ch = ''; # String							 # 現文字
-	my $prevCh = ''; # String						 # 前文字
-	my $nextCh = ''; # String						 # 次文字
-	my $firstCodeCharInLine = ''; # String			 # 行の最初文字（有効ソース範囲）
-	my $lastCodeCharInLine = ''; # String			 # 行の最後文字（有効ソース範囲）
-	my $ss = 0; # SourceStatus						# ソース解析状態
-	my $st = 0; # SourceLineType					# 行タイプ
+	my $firstCodeCharInLine = ''; # String			# 行の最初文字（有効ソース範囲）
+	my $lastCodeCharInLine = ''; # String			# 行の最後文字（有効ソース範囲）
+	my $ss = 'empty';								# ソース解析状態
+	my $st = 'empty';								# 行タイプ
 	my $emptyLines = 0; # Long						# 空白行数
 	my $commentLines = 0; # Long					# コメント行数
 	my $codeLines = 0; # Long						# 有効行数
 	my $stepLines = 0; # Long						# ステップ数
 
+	# 行結末処理
+	my $FinishLine = sub {
+		# 1.行数カウントアップ処理
+		# 1.1.ソース解析状態によって違う処理をする
+		if($st eq 'code') {				# 1.2.有効行の場合
+			$codeLines++;				# 1.2.1.有効行数カウントアップ
+			# 1.2.2.最初文字と最後文字によってステップ数カウントアップする
+			$stepLines++ if $lastCodeCharInLine =~ /^[;\{\}:]$/ || $firstCodeCharInLine eq "#";
+			$firstCodeCharInLine = '';	# 1.2.3.行の最初文字と行の最後文字をリセットする
+			$lastCodeCharInLine = '';
+		}
+		elsif($st eq 'comment') {		# 1.3.コメントの場合
+			$commentLines++;			# 1.3.1.コメント行数カウントアップ
+		}
+		elsif($st eq 'empty') {			# 1.4.空白行の場合
+			$emptyLines++;				# 1.4.1.空白行行数カウントアップ
+		}
+	};
+
 	# 1.処理前チェック
 	# 1.1.拡張子チェック(h, cpp, cのみ処理できる）
-#	 return unless $FilePath =~ /\.(h|c|cpp)$/;
 	# 1.2.フォルダの場合計算できない
 
 	# 2.初期処理
 	# 2.1.ソース解析状態、行タイプを初期値にセット
-	$ss = $ssEmpty;	   # 初期状態
-	$st = $stEmpty;	   # 空白行
 	# 2.2.1番目の文字から解析し始める
-	$i = 1;
-
 	# 3.解析処理
 	# 3.1.順番に1文字ずつ処理していく（文字をスキップすることもある）
-	while($i <= length $SourceTxt) {
-		# 3.1.1.前文字取得
-		$prevCh = '';
-		$prevCh = substr($SourceTxt, $i - 2, 1) if $i > 1;
-		# 3.1.2.現文字取得
-		$ch = substr($SourceTxt, $i - 1, 1);
-		# 3.1.3.次文字取得
-		$nextCh = '';
-		$nextCh = substr($SourceTxt, $i , 1) if $i < length $SourceTxt;
+	my $code = ['', split(//, $SourceTxt), ''];
+	for(my $i = 1; $i < $#$code; $i++) {
+		my $prevCh = $code->[$i - 1];			# 3.1.1.前文字取得
+		my $ch = $code->[$i];					# 3.1.2.現文字取得
+		my $nextCh = $code->[$i + 1];			# 3.1.3.次文字取得
 
 		# 3.1.4.現在のソース解析状態を判断した上で違う処理をする
-		# 3.1.5.有効ソースの場合
-		if($ss == $ssCode) {
+		if($ss eq 'code') {						# 3.1.5.有効ソースの場合
 			# 3.1.5.1.現文字を判断した上で違う処理をする
-			# 3.1.5.2.二重引用符の場合
-			if ($ch eq '"') {
-				# 3.1.5.2.1.ソース解析状態を二重引用にする
-				$ss = $ssDoubleQuotation;
-				# 3.1.5.2.2.行の最後文字は現文字にする
-				$lastCodeCharInLine = $ch;
+			if ($ch eq '"') {					# 3.1.5.2.二重引用符の場合
+				$ss = 'doubleQuotation';		# 3.1.5.2.1.ソース解析状態を二重引用にする
+				$lastCodeCharInLine = $ch;		# 3.1.5.2.2.行の最後文字は現文字にする
 			}
-			# 3.1.5.3.引用符の場合
-			elsif ($ch eq "'") {
-				# 3.1.5.3.1.ソース解析状態を引用にする
-				$ss = $ssSingleQuotation;
-				# 3.1.5.3.2.行の最後文字は現文字にする
-				$lastCodeCharInLine = $ch;
+			elsif ($ch eq "'") {				# 3.1.5.3.引用符の場合
+				$ss = 'singleQuotation';		# 3.1.5.3.1.ソース解析状態を引用にする
+				$lastCodeCharInLine = $ch;		# 3.1.5.3.2.行の最後文字は現文字にする
 			}
-			# 3.1.5.4.スラッシュの場合
-			elsif ($ch eq '/') {
-				# 3.1.5.4.1.次文字もスラッシュの場合
-				if($nextCh eq '/') {
-					# 3.1.5.4.1.1.ソース解析状態をシングル行コメントにする
-					$ss = $ssSingleLineComment;
+			elsif ($ch eq '/') {				# 3.1.5.4.スラッシュの場合
+				if($nextCh eq '/') {			# 3.1.5.4.1.次文字もスラッシュの場合
+					$ss = 'singleLineComment';	# 3.1.5.4.1.1.ソース解析状態をシングル行コメントにする
 					# 3.1.5.4.1.2.行タイプは空白の場合、コメントにする（1回有効行と判断したらもうコメントに変えられない)
-					$st = $stComment if $st == $stEmpty;
-					# 3.1.5.4.1.3.次文字は分かったのでスキップする
-					$i++;
+					$st = 'comment' if $st eq 'empty';
+					$i++;						# 3.1.5.4.1.3.次文字は分かったのでスキップする
 				}
-				# 3.1.5.4.2.次文字は星印の場合
-				elsif($nextCh eq '*') {
-					# 3.1.5.4.2.1.ソース解析状態をマルチ行コメントにする
-					$ss = $ssMultiLineComment;
+				elsif($nextCh eq '*') {			# 3.1.5.4.2.次文字は星印の場合
+					$ss = 'multiLineComment';	# 3.1.5.4.2.1.ソース解析状態をマルチ行コメントにする
 					# 3.1.5.4.2.2.行タイプは空白の場合、コメントにする（1回有効行と判断したらもうコメントに変えられない)
-					$st = $stComment if $st == $stEmpty;
-					# 3.1.5.4.2.3.次文字は分かったのでスキップする
-					$i++;
-				# 3.1.5.4.3.次文字は上記以外の場合
-				} else {
-					# 3.1.5.4.3.1.行の最後文字は現文字にする
-					$lastCodeCharInLine = $ch;
+					$st = 'comment' if $st eq 'empty';
+					$i++;						# 3.1.5.4.2.3.次文字は分かったのでスキップする
+				} else {						# 3.1.5.4.3.次文字は上記以外の場合
+					$lastCodeCharInLine = $ch;	# 3.1.5.4.3.1.行の最後文字は現文字にする
 				}
 			}
-			# 3.1.5.5.改行の場合
-			elsif($ch eq "\n") {
-				# 3.1.5.5.1.ソース解析状態を初期値にする
-				$ss = $ssEmpty;
-				# 3.1.5.5.2.行の結末処理をする
-				FinishLine($ss, $st, \$firstCodeCharInLine, \$lastCodeCharInLine, \$stepLines, \$codeLines, \$commentLines, \$emptyLines);
-				# 3.1.5.5.3.行タイプを初期値に戻す
-				$st = $stEmpty;
+			elsif($ch eq "\n") {				# 3.1.5.5.改行の場合
+				$ss = 'empty';					# 3.1.5.5.1.ソース解析状態を初期値にする
+				&$FinishLine;					# 3.1.5.5.2.行の結末処理をする
+				$st = 'empty';					# 3.1.5.5.3.行タイプを初期値に戻す
 			}
-			# 3.1.5.6.スペースまたはタブの場合
-			elsif ($ch =~ /^\s$/) {
+			elsif ($ch =~ /^\s$/) {				# 3.1.5.6.スペースまたはタブの場合
 				# 3.1.5.6.1.何もしない
-			# 3.1.5.7.上記以外の場合
 			}
-			else {
-				# 3.1.5.7.1.行の最後文字は現文字にする
-				$lastCodeCharInLine = $ch;
+			else {								# 3.1.5.7.上記以外の場合
+				$lastCodeCharInLine = $ch;		# 3.1.5.7.1.行の最後文字は現文字にする
 			}
 		}
-		# 3.1.6.二重引用の場合
-		elsif($ss == $ssDoubleQuotation) {
+		elsif($ss eq 'doubleQuotation') {		# 3.1.6.二重引用の場合
 			# 3.1.6.1.現文字を判断した上で違う処理をする
-			# 3.1.6.2.二重引用符の場合
-			if ($ch eq '"') {
+			if ($ch eq '"') {					# 3.1.6.2.二重引用符の場合
 				# 3.1.6.2.1.前文字は「\」の場合（無視できる二重引用符）
-				if($prevCh eq '\\') {
-					# 3.1.6.2.1.1.何もしない
-				# 3.1.6.2.2.次文字も二重引用符の場合（二重引用符の中に、二重引用符が２つ連続する場合、無視できる）
-				} elsif($nextCh eq '"') {
-					# 3.1.6.2.2.1次文字は分かったのでスキップする
-					$i++;
-				# 3.1.6.2.3.上記以外の場合検討
-				} else {
-					# 3.1.6.2.3.1.ソース解析状態を有効ソースにする
-					$ss = $ssCode;
+				if($prevCh eq '\\') {			# 3.1.6.2.1.1.何もしない
+				} elsif($nextCh eq '"') {		# 3.1.6.2.2.次文字も二重引用符の場合（二重引用符の中に、二重引用符が２つ連続する場合、無視できる）
+					$i++;						# 3.1.6.2.2.1次文字は分かったのでスキップする
+				} else {						# 3.1.6.2.3.上記以外の場合検討
+					$ss = 'code';				# 3.1.6.2.3.1.ソース解析状態を有効ソースにする
 				}
-				# 3.1.6.2.4.行の最後文字は現文字にする
-				$lastCodeCharInLine = $ch;
+				$lastCodeCharInLine = $ch;		# 3.1.6.2.4.行の最後文字は現文字にする
 			}
-			# 3.1.6.3.改行の場合
-			elsif($ch eq "\n") {
-				# 3.1.6.3.1.ソース解析状態を初期値にする
-				$ss = $ssEmpty;
-				# 3.1.6.3.2.行を結末する
-				FinishLine($ss, $st, \$firstCodeCharInLine, \$lastCodeCharInLine, \$stepLines, \$codeLines, \$commentLines, \$emptyLines);
-				# 3.1.6.3.3.行タイプを空白行（初期値として）にする
-				$st = $stEmpty;
+			elsif($ch eq "\n") {				# 3.1.6.3.改行の場合
+				$ss = 'empty';					# 3.1.6.3.1.ソース解析状態を初期値にする
+				&$FinishLine;					# 3.1.6.3.2.行を結末する
+				$st = 'empty';					# 3.1.6.3.3.行タイプを空白行（初期値として）にする
 			}
-			# 3.1.6.4.上記以外の場合
-			else {
-				# 3.1.6.4.1.行の最後文字は現文字にする
-				$lastCodeCharInLine = $ch;
+			else {								# 3.1.6.4.上記以外の場合
+				$lastCodeCharInLine = $ch;		# 3.1.6.4.1.行の最後文字は現文字にする
 			}
 		}
-		# 3.1.7.初期状態の場合
-		elsif($ss == $ssEmpty) {
+		elsif($ss eq 'empty') {					# 3.1.7.初期状態の場合
 			# 3.1.7.1.現文字を判断した上で違う処理をする
-			# 3.1.7.2.二重引用符の場合
-			if ($ch eq '"') {
-				# 3.1.7.2.1.ソース解析状態を二重引用にする
-				$ss = $ssDoubleQuotation;
-				# 3.1.7.2.2.行タイプを有効ソースにする
-				$st = $stCode;
+			if ($ch eq '"') {					# 3.1.7.2.二重引用符の場合
+				$ss = 'doubleQuotation';		# 3.1.7.2.1.ソース解析状態を二重引用にする
+				$st = 'code';					# 3.1.7.2.2.行タイプを有効ソースにする
 				# 3.1.7.2.3.行の最初文字を現文字にする
 				$firstCodeCharInLine = $ch if 0 == length $firstCodeCharInLine;
-				# 3.1.7.2.4.行の最後文字を現文字にする
-				$lastCodeCharInLine = $ch;
+				$lastCodeCharInLine = $ch;		# 3.1.7.2.4.行の最後文字を現文字にする
 			}
-			# 3.1.7.2.引用符の場合
-			elsif ($ch eq "'") {
-				# 3.1.7.2.1.ソース解析状態を引用にする
-				$ss = $ssSingleQuotation;
-				# 3.1.7.2.2.行タイプを有効ソースにする
-				$st = $stCode;
+			elsif ($ch eq "'") {				# 3.1.7.2.引用符の場合
+				$ss = 'singleQuotation';		# 3.1.7.2.1.ソース解析状態を引用にする
+				$st = 'code';					# 3.1.7.2.2.行タイプを有効ソースにする
 				# 3.1.7.2.3.行の最初文字を現文字にする
 				$firstCodeCharInLine = $ch if 0 == length $firstCodeCharInLine;
-				# 3.1.7.2.4.行の最後文字を現文字にする
-				$lastCodeCharInLine = $ch;
+				$lastCodeCharInLine = $ch;		# 3.1.7.2.4.行の最後文字を現文字にする
 			}
-			# 3.1.7.3.スラッシュの場合
-			elsif ($ch eq '/') {
-				# 3.1.7.3.1.次文字はスラッシュの場合
-				if($nextCh eq '/') {
-					# 3.1.7.3.1.1.ソース解析状態をシングル行コメントにする
-					$ss = $ssSingleLineComment;
-					# 3.1.7.3.1.2.行タイプをコメントにする
-					$st = $stComment if $st == $stEmpty;
-					# 3.1.7.3.1.3.次文字は分かったのでスキップする
-					$i++;
+			elsif ($ch eq '/') {				# 3.1.7.3.スラッシュの場合
+				if($nextCh eq '/') {			# 3.1.7.3.1.次文字はスラッシュの場合
+					$ss = 'singleLineComment';			# 3.1.7.3.1.1.ソース解析状態をシングル行コメントにする
+					$st = 'comment' if $st eq 'empty';	# 3.1.7.3.1.2.行タイプをコメントにする
+					$i++;								# 3.1.7.3.1.3.次文字は分かったのでスキップする
 				}
-				# 3.1.7.3.2.次文字は星印の場合
-				elsif($nextCh eq '*') {
-					# 3.1.7.3.2.1.ソース解析状態をマルチ行コメントにする
-					$ss = $ssMultiLineComment;
-					# 3.1.7.3.2.2.行タイプをコメントにする
-					$st = $stComment if $st == $stEmpty;
-					# 3.1.7.3.2.3.次文字は分かったのでスキップする
-					$i++;
+				elsif($nextCh eq '*') {			# 3.1.7.3.2.次文字は星印の場合
+					$ss = 'multiLineComment';			# 3.1.7.3.2.1.ソース解析状態をマルチ行コメントにする
+					$st = 'comment' if $st eq 'empty';	# 3.1.7.3.2.2.行タイプをコメントにする
+					$i++;								# 3.1.7.3.2.3.次文字は分かったのでスキップする
 				}
-				# 3.1.7.3.3.上記以外の場合
-				else {
-					# 3.1.7.3.3.1.ソース解析状態を有効ソースにする
-					$ss = $ssCode;
+				else {							# 3.1.7.3.3.上記以外の場合
+					$ss = 'code';						# 3.1.7.3.3.1.ソース解析状態を有効ソースにする
 					# 3.1.7.3.3.2.行の最初文字を現文字にする
 					$firstCodeCharInLine = $ch if 0 == length $firstCodeCharInLine;
-					# 3.1.7.3.3.3.行の最後文字を現文字にする
-					$lastCodeCharInLine = $ch;
+					$lastCodeCharInLine = $ch;			# 3.1.7.3.3.3.行の最後文字を現文字にする
 				}
 			}
-			# 3.1.7.4.スペースまたはタブの場合
-			elsif($ch =~ /^\s$/) {
+			elsif($ch =~ /^\s$/) {				# 3.1.7.4.スペースまたはタブの場合
 				# 3.1.7.4.1.何もしない
-				# not changed
 			}
-			# 3.1.7.5.改行の場合
-			elsif($ch eq "\n") {
-				# 3.1.7.5.1.行を結末する
-				FinishLine($ss, $st, \$firstCodeCharInLine, \$lastCodeCharInLine, \$stepLines, \$codeLines, \$commentLines, \$emptyLines);
-				# 3.1.7.5.2.行タイプを空白行（初期値として）にする
-				$st = $stEmpty;
-			# 3.1.7.6.上記以外の場合
-			} else {
-				# 3.1.7.6.1.ソース解析状態を有効ソースにする
-				$ss = $ssCode;
-				# 3.1.7.6.2.行タイプを有効行にする
-				$st = $stCode;
+			elsif($ch eq "\n") {				# 3.1.7.5.改行の場合
+				&$FinishLine;					# 3.1.7.5.1.行を結末する
+				$st = 'empty';					# 3.1.7.5.2.行タイプを空白行（初期値として）にする
+			} else {							# 3.1.7.6.上記以外の場合
+				$ss = 'code';					# 3.1.7.6.1.ソース解析状態を有効ソースにする
+				$st = 'code';					# 3.1.7.6.2.行タイプを有効行にする
 				# 3.1.7.6.3.行の最初文字を現文字にする
 				$firstCodeCharInLine = $ch if 0 == length $firstCodeCharInLine;
-				# 3.1.7.6.4.行の最後文字を現文字にする
-				$lastCodeCharInLine = $ch;
+				$lastCodeCharInLine = $ch;		# 3.1.7.6.4.行の最後文字を現文字にする
 			}
 		}
-		# 3.1.8.マルチ行コメントの場合
-		elsif($ss == $ssMultiLineComment) {
+		elsif($ss eq 'multiLineComment') {		# 3.1.8.マルチ行コメントの場合
 			# 3.1.8.1.現文字を判断した上で違う処理をする
-			# 3.1.8.2.星印の場合
-			if($ch eq '*') {
-				# 3.1.8.2.1.次文字はスラッシュの場合
-				if($nextCh eq '/') {
-					# 3.1.8.2.1.1.ソース解析状態を初期値にする
-					$ss = $ssEmpty;
-					# 3.1.8.2.1.2.次文字は分かったのでスキップする
-					$i++;
+			if($ch eq '*') {					# 3.1.8.2.星印の場合
+				if($nextCh eq '/') {			# 3.1.8.2.1.次文字はスラッシュの場合
+					$ss = 'empty';				# 3.1.8.2.1.1.ソース解析状態を初期値にする
+					$i++;						# 3.1.8.2.1.2.次文字は分かったのでスキップする
 				}
 			}
-			# 3.1.8.3.改行の場合
-			elsif($ch eq "\n") {
-				# 3.1.8.3.1.行を結末する
-				FinishLine($ss, $st, \$firstCodeCharInLine, \$lastCodeCharInLine, \$stepLines, \$codeLines, \$commentLines, \$emptyLines);
-				# 3.1.8.3.2.行タイプをコメントにする
-				$st = $stComment;
+			elsif($ch eq "\n") {				# 3.1.8.3.改行の場合
+				&$FinishLine;					# 3.1.8.3.1.行を結末する
+				$st = 'comment';				# 3.1.8.3.2.行タイプをコメントにする
 			}
-			# 3.1.8.4.上記以外の場合
-			else {
+			else {								# 3.1.8.4.上記以外の場合
 				# 3.1.8.4.1.何もしない
-				# do nothing
 			}
 		}
-		# 3.1.9.シングル行コメントの場合
-		elsif($ss == $ssSingleLineComment) {
+		elsif($ss eq 'singleLineComment') {		# 3.1.9.シングル行コメントの場合
 			# 3.1.9.1.現文字を判断した上で違う処理をする
-			# 3.1.9.2.改行の場合
-			if($ch eq "\n") {
-				# 3.1.9.2.1.ソース解析状態を初期値にする
-				$ss = $ssEmpty;
-				# 3.1.9.2.2.行を結末する
-				FinishLine($ss, $st, \$firstCodeCharInLine, \$lastCodeCharInLine, \$stepLines, \$codeLines, \$commentLines, \$emptyLines);
-				# 3.1.9.2.3.行タイプを空白行（初期値として）にする
-				$st = $stEmpty;
+			if($ch eq "\n") {					# 3.1.9.2.改行の場合
+				$ss = 'empty';					# 3.1.9.2.1.ソース解析状態を初期値にする
+				&$FinishLine;					# 3.1.9.2.2.行を結末する
+				$st = 'empty';					# 3.1.9.2.3.行タイプを空白行（初期値として）にする
 			}
-			# 3.1.9.3.上記以外の場合
-			else {
+			else {								# 3.1.9.3.上記以外の場合
 				# 3.1.9.3.1.何もしない
-				# do nothing
 			}
 		}
-		# 3.1.10.引用符の場合
-		elsif($ss == $ssSingleQuotation) {
+		elsif($ss eq 'singleQuotation') {		# 3.1.10.引用符の場合
 			# 3.1.10.1.現文字を判断した上で違う処理をする
-			# 3.1.10.2.引用符の場合
-			if($ch eq "'") {
-				# 3.1.10.2.1.前文字は\の場合（無視できる）
-				if($prevCh eq '\\') {
+			if($ch eq "'") {					# 3.1.10.2.引用符の場合
+				if($prevCh eq '\\') {			# 3.1.10.2.1.前文字は\の場合（無視できる）
 					# 3.1.10.2.1.1.何もしない
-					# do nothing
 				}
-				# 3.1.10.2.2.上記以外の場合
-				else {
-					# 3.1.10.2.2.1.ソース解析状態を有効ソースにする
-					$ss = $ssCode;
+				else {							# 3.1.10.2.2.上記以外の場合
+					$ss = 'code';				# 3.1.10.2.2.1.ソース解析状態を有効ソースにする
 				}
-				# 3.1.10.2.3.行の最後文字を現文字にする
-				$lastCodeCharInLine = $ch;
+				$lastCodeCharInLine = $ch;		# 3.1.10.2.3.行の最後文字を現文字にする
 			}
-			# 3.1.10.3.改行の場合
-			elsif($ch eq "\n") {
-				# 3.1.10.3.1.ソース解析状態を初期値にする
-				$ss = $ssEmpty; # quota cannot exceed line (here will be compile error, so that this is impossible case in compiled source)
-				# 3.1.10.3.2.行を結末する
-				FinishLine($ss, $st, \$firstCodeCharInLine, \$lastCodeCharInLine, \$stepLines, \$codeLines, \$commentLines, \$emptyLines);
-				# 3.1.10.3.3.行タイプを空白行（初期値として）にする
-				$st = $stEmpty;
+			elsif($ch eq "\n") {				# 3.1.10.3.改行の場合
+				$ss = 'empty';					# 3.1.10.3.1.ソース解析状態を初期値にする
+				&$FinishLine;					# 3.1.10.3.2.行を結末する
+				$st = 'empty';					# 3.1.10.3.3.行タイプを空白行（初期値として）にする
 			}
-			# 3.1.10.4.上記以外の場合
-			else {
-				# 3.1.10.4.1.行の最後文字を現文字にする
-				$lastCodeCharInLine = $ch;
+			else {								# 3.1.10.4.上記以外の場合
+				$lastCodeCharInLine = $ch;		# 3.1.10.4.1.行の最後文字を現文字にする
 			}
 		}
-		# 3.1.11.次の文字に
-		$i++;
 	}
 	# 3.2.行を結末する（最後の改行コードはない。最後の文字が改行になってもその後ろは空白行が1行あると取り扱う）
-	FinishLine($ss, $st, \$firstCodeCharInLine, \$lastCodeCharInLine, \$stepLines, \$codeLines, \$commentLines, \$emptyLines);
-	# 3.3.計算結果をメンバー変数に保存する
+	&$FinishLine;
+	# 3.3.計算結果を返却する
 	return($codeLines, $stepLines, $commentLines, $emptyLines, $codeLines + $commentLines + $emptyLines);
 }

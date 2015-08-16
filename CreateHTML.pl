@@ -94,7 +94,7 @@ sub CreateHtml {
 				'http-equiv'=> 'X-UA-Compatible',
 				-content	=> 'IE=10'}),
 			$q->meta({-charset=>'UTF-8'}),
-			$q->link({-rel=>'stylesheet', href=>'css/base.css'}),
+			$q->Link({-rel=>'stylesheet', href=>'css/base.css'}),
 			$q->style({-type=>'text/css'}, "\n", <<"CSS"
 
 div.line {

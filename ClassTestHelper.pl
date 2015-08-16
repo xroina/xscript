@@ -326,7 +326,7 @@ sub CreateHtml {
 				'http-equiv'=>'Content-Type',
 				-content	=>'text/html; charset=UTF-8'}),
 			$q->meta({-charset=>'UTF-8'}),
-			$q->link({-rel=>'stylesheet', href=>'css/base.css'}),
+			$q->Link({-rel=>'stylesheet', href=>'css/base.css'}),
 			(map{ $q->script({-type=>'text/javascript', -src=>"js/$_"}, "") } @{$param->{javascript}}),
 			$q->script({-langage=>"text/javascript"}, "<!--\n", <<'JAVASCRIPT'
 JAVASCRIPT

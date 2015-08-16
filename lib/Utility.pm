@@ -1,3 +1,6 @@
+#===============================================================================
+# ユーティリティ
+#===============================================================================
 package Utility;
 
 use strict;
@@ -5,26 +8,31 @@ use warnings;
 use utf8;
 use Encode;
 
+# 前後のスペースを取り除き、'#'以降をコメントとして取り除いた文字を取得する。
+sub getLine {
+	my ($str) = @_;
+	chomp $str;
+	$str =~ s/#.*$//;
+	$str =~ s/^\s*(.*?)\s*$/$1/;
+	return $str;
+}
+
+# コマンドライン引数の正規表現取得
 my $optionRegexp = sub {
 	my($str) = @_;
 	return '--?'. substr($str, 0, 1) . '(?:'. quotemeta(substr($str, 1)) . ')?';
 };
 
-sub getLine {
-	my ($str) = @_;
-	chomp $str;
-	$str =~ s/^\s*(.*?)\s*$/$1/;
-	$str =~ s/#.*$//;
-	return $str;
-}
-
+# コマンドラインオプションの解析
 sub getStartOption {
 	my($param, $options, $path) = @_;
+	my $file = [];
 
 	$path = 'path' unless $path;
 	$param = {} unless $param;
 	$param->{$path} = [] unless 'ARRAY' eq ref $param->{$path};
 
+	# オプション文字列の解析
 	my $regex = [];
 	foreach(@$options) {
 		$_ = getLine($_);
@@ -56,6 +64,7 @@ sub getStartOption {
 		push @$regex, $obj;
 	}
 
+	# コマンドライン引数取得本体
 	foreach my $arg(@ARGV) {
 		my $flag;
 		foreach my $reg(@$regex) {
@@ -67,47 +76,53 @@ sub getStartOption {
 					$param->{$n} = !$param->{$n};
 				}
 				elsif($1) {
-					if($t eq 'int') { $param->{$n} = $1 + 0; }
+					my $str = Encode::decode('utf8', $1);
+					if($t eq 'int') { $param->{$n} = $str + 0; }
 					elsif($t eq 'array') {
 						$param->{$n} = [] if 'ARRAY' eq ref $param->{$n};
-						push @{$param->{$n}}, Encode::decode('utf8', $1);
+						push @{$param->{$n}}, $str;
 					}
-					else { $param->{$n} = Encode::decode('utf8', $1); }
+					elsif($t eq 'file') { push @$file, $str; }
+					else { $param->{$n} = $str; }
 				}
 				else { $param->{$f} = 1; }
 				$flag = 1;
 			}
 			elsif($param->{$f}) {
-				if($t eq 'int') { $param->{$n} = $arg + 0; }
+				my $str = Encode::decode('utf8', $arg);
+				if($t eq 'int') { $param->{$n} = $str + 0; }
 				elsif($t eq 'array') {
 					$param->{$n} = [] if 'ARRAY' eq ref $param->{$n};
-					push @{$param->{$n}}, Encode::decode('utf8', $arg);
+					push @{$param->{$n}}, $str;
 				}
-				else { $param->{$n} = Encode::decode('utf8', $arg); }
+				elsif($t eq 'file') { push @$file, $str; }
+				else { $param->{$n} = $str; }
 				delete $param->{$f};
 				$flag = 1;
 			}
-			if('file' eq $t && $param->{$n}) {
-				use FileHandle;
-				my $fh = new FileHandle($param->{$n}) or die "$param->{$n} file open error:$!";
-				$fh->binmode(':utf8');
-				while(<$fh>) {
-					$_ = getLine($_);
-					next unless $_;
+		}
+		push @{$param->{$path}}, Encode::decode('utf8', $_) unless $flag;
+	}
+	# オプションがファイルを読むことになっていたらファイルを読む
+	foreach my $f(@$file) {
+		use FileHandle;
+		my $fh = new FileHandle($f) or die "$f file open error:$!";
+		$fh->binmode(':utf8');
+		while(<$fh>) {
+			$_ = getLine($_);
+			next unless $_;
 
-					if(/^(\w+)\s*=\s*(.*)$/) {
-						$param->{lc $1} = $2;
-					} else {
-						push(@{$param->{$path}}, split ' ', $_);
-					}
-				}
+			if(/^(\w+)\s*=\s*(.*)$/) {
+				$param->{lc $1} = $2;
+			} else {
+				push(@{$param->{$path}}, split ' ', $_);
 			}
 		}
-
-		push @{$param->{$path}}, Encode::decode('utf8', $_) unless $flag;
+		$fh->close;
 	}
 }
 
+# js,css,imgのシンボリックリンクを作成する。
 sub createSymLink {
 	my($prog) = $0 =~ /^(.*?)[^\/]+$/;
 	($prog) = readlink($0) =~ /^(.*?)([^\/]+)$/ if -l $0;
@@ -119,6 +134,7 @@ sub createSymLink {
 	}
 }
 
+# HTMLに出力不能な文字を&xx;形式に変換する。
 sub toHtml {
 	($_) = @_;
 	s/&/&amp;/gm;
@@ -132,30 +148,32 @@ sub toHtml {
 	return $_;
 }
 
+# パスのリストがフォルダかファイルかを判定し、フォルダ(または*付きの文字)ならその先を再帰的にファイル取得する。
 sub getRecursivePath {
 	my($in, $ext) = @_;
-	my $ret = [];
-	foreach my $path(@$in) {
-		if(-d $path) {
-			$path =~ s#/$##;
+	my $ary = [];
+	foreach(@$in) {
+		if(-d) {
+			s#/$##;
 			no warnings 'recursion';
-			getRecursivePath($_, $ext) foreach glob "$path/*";
+			push @$ary, @{getRecursivePath([glob "$_/*"], $ext)};
 		}
-		elsif(-f $path) {
-			next if $ext && $path !~ /\.($ext)$/;
-			unless($path =~ m#^/#) {
+		elsif(-f) {
+			next if defined $ext && !/\.($ext)$/;
+			unless(m#^/#) {
 				use Cwd 'getcwd';
-				$path = getcwd()."/$path";
+				$_ = getcwd() . "/$_";
 			}
-			$path =~ s#/(\.?/)+#/#mg;
-			$path =~ s#[^/]+/\.\./##mg;
-			push @$ret, $path;
+			s#/(\.?/)+#/#mg;
+			s#[^/]+/\.\./##mg;
+			push @$ary, $_;
 		}
-		elsif($path =~ /\*/) {
+		elsif(/\*/) {
 			no warnings 'recursion';
-			getRecursivePath($_, $ext) foreach glob $path;
+			push @$ary, @{getRecursivePath([glob], $ext)};
 		}
 	}
+	return $ary;
 }
 
 1;
