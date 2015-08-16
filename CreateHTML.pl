@@ -415,3 +415,7 @@ JAVASCRIPT
 	$fh->print($q->end_html, "\n");
 	$fh->close();
 }
+
+sub debug {
+	print '[CreateHTML] '. join(' ', @_) . "\n" if $param->{debug};
+}

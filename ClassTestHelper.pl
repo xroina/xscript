@@ -519,8 +519,7 @@ JAVASCRIPT
 
 sub putComment {
 	my($comment) = @_;
-	return '' unless $comment;
-	return Utility::toHtml(join "<br>\n", split "\n", $comment);
+	return Utility::toHtml($comment);
 }
 
 sub debug {

@@ -142,7 +142,7 @@ sub toHtml {
 	s/>/&gt;/gm;
 	s/"/&quot;/gm;
 	s/\t/    /gm;
-	s/\n/&nbsp;\n/gm;
+	s/\n/<br>\n/gm;
 	s/ /&nbsp;/gm;
 	
 	return $_;
@@ -174,6 +174,15 @@ sub getRecursivePath {
 		}
 	}
 	return $ary;
+}
+
+# エンコード自動変更(UTF-8)
+sub toUTF8 {
+	my($str) = @_;
+	use Encode::Guess qw/sjis euc-jp 7bit-jis/;
+	my $decoder = Encode::Guess->guess($str);
+	die "Encode::Guess Fail:decoder=$decoder:error=$!\n" unless ref $decoder;
+	return $decoder->decode($str);
 }
 
 1;

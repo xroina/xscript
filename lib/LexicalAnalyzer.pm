@@ -19,25 +19,18 @@ use base 'TokenAnalyzer';
 sub new {
 	my($this, $params) = @_;
 	$this = bless new TokenAnalyzer($params), $this;
-	if($this->{file}) {
+	if($this->{file} && !$this->{readfile}) {
 		use FileHandle;
 		$this->debug("Read:$this->{file}");
 
 		my $fh = new FileHandle($this->{file}, 'r') or die "$this->{file} file open error:$!\n";
 		$fh->binmode;
-		my $code = '';
-		$code .= $_ while <$fh>;
+		my $code = join '', <$fh>;
 		$fh->close;
 
-		use Encode;
-		use Encode::Guess qw/sjis euc-jp 7bit-jis/;
-
-		my $decoder = Encode::Guess->guess($code);
-		die $decoder unless ref $decoder;
-
-		$this->debug("text encode : ". $decoder->name);
-
-		$this->{code} = $decoder->decode($code);
+		use Utility;
+		$this->{code} = Utility::toUTF8($code);;
+		$this->{readfile} = 1;
 	}
 	$this->Analyze;
 
