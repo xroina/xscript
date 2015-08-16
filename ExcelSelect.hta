@@ -39,8 +39,8 @@ function Execute(file, table) {
 	document.getElementById('result').innerHTML = "";
 	clearMessage();
 
-	if(!file.match(/\.xlsx?$/)) { info("<B>Excelãƒ•ã‚¡ã‚¤ãƒ«ã§ã¯ã‚ã‚Šã¾ã›ã‚“:"+file); return; }
-	if(!fs.FileExists(file)) { info("<B>ãƒ•ã‚¡ã‚¤ãƒ«ãŒã‚ã‚Šã¾ã›ã‚“:"+file); return; }
+	if(!file.match(/\.xlsx?$/)) { info("<B>Excelƒtƒ@ƒCƒ‹‚Å‚Í‚ ‚è‚Ü‚¹‚ñ:"+file); return; }
+	if(!fs.FileExists(file)) { info("<B>ƒtƒ@ƒCƒ‹‚ª‚ ‚è‚Ü‚¹‚ñ:"+file); return; }
 	if(!table) return;
 
 	var index = document.form.driver.selectedIndex;
@@ -54,7 +54,7 @@ function Execute(file, table) {
 	var tbl = document.createElement('TABLE');
 	var thd = document.createElement('THEAD');
 	var tr,th,td;
-	// ãƒ˜ãƒƒãƒ€
+	// ƒwƒbƒ_
 	tr = document.createElement('TR');
 	th = document.createElement('TH'); th.style.fontSize = 'xx-small';
 	th.innerHTML = "Field"; tr.appendChild(th);
@@ -78,7 +78,7 @@ function Execute(file, table) {
 
 	tbl.appendChild(thd);
 	
-	// æœ¬ä½“
+	// –{‘Ì
 	var tbd = document.createElement('TBODY');
 	for(var line = 1; !cn.eof(); cn.next(), line++) {
 
@@ -108,15 +108,15 @@ function Execute(file, table) {
 <form name="form">
 <input type="text" name="debug" size=1>
 <br>
-æ¤œç´¢ãƒ‘ã‚¹ <span id='xls'></span>
+ŒŸõƒpƒX <span id='xls'></span>
 <br>
-ãƒ‰ãƒ©ã‚¤ãƒ
+ƒhƒ‰ƒCƒo
 <select name="driver"></select><br>
-<input type="button" name="gettables" value=" è§£æ "><br>
-ã‚·ãƒ¼ãƒˆ
+<input type="button" name="gettables" value=" ‰ğÍ "><br>
+ƒV[ƒg
 <select name="sheets"></select>
 <br>
-<input type="button" name="execute" value=" å®Ÿè¡Œ ">
+<input type="button" name="execute" value=" Às ">
 </form>
 
 <div id="result"></div><BR>
@@ -138,7 +138,7 @@ for(var i in drivers) {
 	document.form.driver.appendChild(option);
 }
 
-//ã‚¤ãƒ™ãƒ³ãƒˆå®šç¾©====================================================================================================================
+//ƒCƒxƒ“ƒg’è‹`====================================================================================================================
 document.form.execute.onclick = function() {
 	DEBUG = parseInt('0'+document.form.debug.value);
 	var index = document.form.sheets.selectedIndex;

@@ -6,4 +6,3 @@ do
 	rm $HOME/bin/${name%.pl}
 	ln -s $PWD/$name $HOME/bin/${name%.pl}
 done
-

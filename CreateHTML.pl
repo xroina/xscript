@@ -416,4 +416,3 @@ JAVASCRIPT
 	$fh->print($q->end_html, "\n");
 	$fh->close();
 }
-

@@ -1,5 +1,5 @@
 <html><head>
-<title>ãƒ‡ã‚£ã‚·ã‚¸ãƒ§ãƒ³ãƒ†ãƒ¼ãƒ–ãƒ«ä»¶æ•°ã‚«ã‚¦ãƒ³ãƒˆãƒ„ãƒ¼ãƒ«</title>
+<title>ƒfƒBƒVƒWƒ‡ƒ“ƒe[ƒuƒ‹Œ”ƒJƒEƒ“ƒgƒc[ƒ‹</title>
 <meta http-equiv="X-UA-Compatible" content="IE=10" />
 <link rel="stylesheet" href="css/base.css">
 <script type="text/javascript" src="js/Utility.js" />
@@ -19,8 +19,8 @@ function Execute(path, flag) {
 	document.getElementById('result').innerHTML = "";
 
 	if(document.URL.match(/^[^\/]+\/\/[\/\\]{2}/))
-		if(!confirm("ãƒ„ãƒ¼ãƒ«ã®å®Ÿè¡Œãƒ‘ã‚¹ã«ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯ãƒ‘ã‚¹ãŒæŒ‡å®šã•ã‚Œã¦ã„ã‚‹ãŸã‚ãƒ•ã‚¡ã‚¤ãƒ«ã®æ•°ã ã‘ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯è­¦å‘ŠãŒç™ºç”Ÿã—ã¾ã™ã€‚\n"
-			+ "ãƒ„ãƒ¼ãƒ«ã‚’ãƒ­ãƒ¼ã‚«ãƒ«ãƒ‡ã‚£ã‚¹ã‚¯ã«ã‚³ãƒ”ãƒ¼ã—ã¦å®Ÿè¡Œã™ã‚‹ã“ã¨ã‚’ãŠã™ã™ã‚ã—ã¾ã™ã€‚\nå®Ÿè¡Œã—ã¦ã‚‚ã‚ˆã‚ã—ã„ã§ã™ã‹ï¼Ÿ"))
+		if(!confirm("ƒc[ƒ‹‚ÌÀsƒpƒX‚Éƒlƒbƒgƒ[ƒNƒpƒX‚ªw’è‚³‚ê‚Ä‚¢‚é‚½‚ßƒtƒ@ƒCƒ‹‚Ì”‚¾‚¯ƒlƒbƒgƒ[ƒNŒx‚ª”­¶‚µ‚Ü‚·B\n"
+			+ "ƒc[ƒ‹‚ğƒ[ƒJƒ‹ƒfƒBƒXƒN‚ÉƒRƒs[‚µ‚ÄÀs‚·‚é‚±‚Æ‚ğ‚¨‚·‚·‚ß‚µ‚Ü‚·B\nÀs‚µ‚Ä‚à‚æ‚ë‚µ‚¢‚Å‚·‚©H"))
 			return;
 
 	ph.files   = [];
@@ -37,13 +37,13 @@ function Phase0() {
 	var em = new Enumerator(folder.Files);
 	for(em.moveFirst(); !em.atEnd(); em.moveNext()) {
 		var file = em.item().Name;
-		if(!file.match(/\.xlsx?$/))           { info('<font color="blue">Excelãƒ•ã‚¡ã‚¤ãƒ«ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚ã‚¹ã‚­ãƒƒãƒ—ã—ã¾ã™</font>:' + file); continue; }
-		if(!file.match(/^[\w\-]+_(.+)_å˜ä½“/)) { info('<font color="blue">å˜ä½“è©¦é¨“é …ç›®ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚ã‚¹ã‚­ãƒƒãƒ—ã—ã¾ã™</font>:' + file);  continue; }
+		if(!file.match(/\.xlsx?$/))           { info('<font color="blue">Excelƒtƒ@ƒCƒ‹‚Å‚Í‚ ‚è‚Ü‚¹‚ñBƒXƒLƒbƒv‚µ‚Ü‚·</font>:' + file); continue; }
+		if(!file.match(/^[\w\-]+_(.+)_’P‘Ì/)) { info('<font color="blue">’P‘ÌŒ±€–Ú‚Å‚Í‚ ‚è‚Ü‚¹‚ñBƒXƒLƒbƒv‚µ‚Ü‚·</font>:' + file);  continue; }
 		ph.files.push({
 			path   : ph.Folders[0],
 			file   : file,
 			name   : RegExp.$1,
-			service: file.match(/ï¼ˆã‚µãƒ¼ãƒ“ã‚¹ï¼‰/)
+			service: file.match(/iƒT[ƒrƒXj/)
 		});
 	}
 	em = null;
@@ -57,9 +57,9 @@ function Phase0() {
 	ph.Folders.shift();
 
 	var p = -1;
-	if(ph.Folders.length > 0)    { p = 0; info('ã‚µãƒ–ãƒ•ã‚©ãƒ«ãƒ€ã‚’æ¤œç´¢ã—ã¦ã„ã¾ã™:' + ph.Folders[0]); }
+	if(ph.Folders.length > 0)    { p = 0; info('ƒTƒuƒtƒHƒ‹ƒ_‚ğŒŸõ‚µ‚Ä‚¢‚Ü‚·:' + ph.Folders[0]); }
 	else if(ph.files.length > 0) { p = 1; ph.file  = 0; }
-	else info("<font color='red'>å¯¾è±¡ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒè¦‹å½“ãŸã‚Šã¾ã›ã‚“ã§ã—ãŸã€‚ãƒ‘ã‚¹ã‚’è¦‹ç›´ã—ã¦ãã ã•ã„</font>");
+	else info("<font color='red'>‘ÎÛ‚Ìƒtƒ@ƒCƒ‹‚ªŒ©“–‚½‚è‚Ü‚¹‚ñ‚Å‚µ‚½BƒpƒX‚ğŒ©’¼‚µ‚Ä‚­‚¾‚³‚¢</font>");
 	if(p >= 0) setTimeout("Phase" + p + "()", TIMEOUT);
 }
 
@@ -68,7 +68,7 @@ function Phase1() {
 	if(!('file' in ph)) return;
 
 	ph.name    = ph.files[ph.file].name;
-	info("ãƒ•ã‚¡ã‚¤ãƒ«ï¼š" + ph.files[ph.file].file + " (" + (ph.files[ph.file].service ? "ã‚µãƒ¼ãƒ“ã‚¹ã®å˜ä½“è©¦é¨“æˆç¸¾è¡¨" : "ãƒ‡ã‚£ã‚·ã‚¸ãƒ§ãƒ³ãƒ†ãƒ¼ãƒ–ãƒ«") + "ã‚’è§£æã—ã¾ã™)");
+	info("ƒtƒ@ƒCƒ‹F" + ph.files[ph.file].file + " (" + (ph.files[ph.file].service ? "ƒT[ƒrƒX‚Ì’P‘ÌŒ±¬Ñ•\" : "ƒfƒBƒVƒWƒ‡ƒ“ƒe[ƒuƒ‹") + "‚ğ‰ğÍ‚µ‚Ü‚·)");
 
 	ph.cn = new Connection(MSExcel12_ODBC_Driver, {
 		file:ph.files[ph.file].path + "/" + ph.files[ph.file].file,
@@ -91,7 +91,7 @@ function Phase2() {
 
 	if(table && table.match(/^'?[\w\-]+\$'?$/)) {
 		var ret = ph.files[ph.file].service ? count_service() : count_class();
-		if(!ret) info('<font color="brue">è©¦é¨“é …ç›®ãŒå–å¾—ã§ãã¾ã›ã‚“ã§ã—ãŸ</font> : '+ ph.files[ph.file].file + "->" + table)
+		if(!ret) info('<font color="brue">Œ±€–Ú‚ªæ“¾‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½</font> : '+ ph.files[ph.file].file + "->" + table)
 	}
 	
 	var func = 'Phase';
@@ -109,7 +109,7 @@ function Phase2() {
 	setTimeout(func + '()', TIMEOUT);
 }
 
-//ã‚¯ãƒ©ã‚¹===========================================================================================================
+//ƒNƒ‰ƒX===========================================================================================================
 function count_class() {
 	var file  = ph.files[ph.file].file;
 	var cn = ph.cn;
@@ -118,9 +118,9 @@ function count_class() {
 	if(!(file in ph.count))
 		ph.count[file] = {
 			name	: ph.name,
-			ä»¶æ•°	: 0,
-			æ¸ˆ		: 0,
-			å®Ÿæ–½	: 0,
+			Œ”	: 0,
+			Ï		: 0,
+			À{	: 0,
 			OK		: 0,
 			NG		: 0,
 			date	: {},
@@ -129,26 +129,26 @@ function count_class() {
 	var count = ph.count[file]
 	count.sheet.push({});
 
-	// ã‚¯ãƒ©ã‚¹ç‰©ç†å
-	cn.select("[F3] FROM [" + table + "] WHERE " + cn.row(table, "B") + " LIKE 'ã‚¯ãƒ©ã‚¹ç‰©ç†å'");
+	// ƒNƒ‰ƒX•¨—–¼
+	cn.select("[F3] FROM [" + table + "] WHERE " + cn.row(table, "B") + " LIKE 'ƒNƒ‰ƒX•¨—–¼'");
 	if(!cn.eof()) count.value = cn.item("F3");
 	cn.close();
 
-	// ãƒ¡ã‚½ãƒƒãƒ‰ç‰©ç†å
-	var sql = cn.row(table, "R5") + " FROM [" + table + "] WHERE " + cn.row(table, "B") + " LIKE 'ãƒ¡ã‚½ãƒƒãƒ‰ç‰©ç†å'";
+	// ƒƒ\ƒbƒh•¨—–¼
+	var sql = cn.row(table, "R5") + " FROM [" + table + "] WHERE " + cn.row(table, "B") + " LIKE 'ƒƒ\ƒbƒh•¨—–¼'";
 	cn.select(sql);
 	if(!cn.eof()) count.sheet[count.sheet.length - 1].value = cn.item('R5');
 	cn.close();
 
-	// ãƒ¡ã‚½ãƒƒãƒ‰è«–ç†å
-	var sql = cn.row(table, "F6") + " FROM [" + table + "] WHERE " + cn.row(table, "R7") + " LIKE 'ãƒ¡ã‚½ãƒƒãƒ‰è«–ç†å'";
+	// ƒƒ\ƒbƒh˜_—–¼
+	var sql = cn.row(table, "F6") + " FROM [" + table + "] WHERE " + cn.row(table, "R7") + " LIKE 'ƒƒ\ƒbƒh˜_—–¼'";
 	cn.select(sql);
 	if(!cn.eof()) count.sheet[count.sheet.length - 1].name = cn.item('R8');
 	cn.close();
 
-	// è©¦é¨“é …ç›®ã®å–å¾—
+	// Œ±€–Ú‚Ìæ“¾
 	var area = [];
-	cn.select("* FROM [" + table + "] WHERE " + cn.row(table, "R7") + " LIKE '%è©¦é¨“é …ç›®ï¼©ï¼¤%'");
+	cn.select("* FROM [" + table + "] WHERE " + cn.row(table, "R7") + " LIKE '%Œ±€–Ú‚h‚c%'");
 	if(!cn.eof()) {
 		for(var i = 0; i < cn.count(); i++) {
 			var value = cn.item(i);
@@ -161,18 +161,18 @@ function count_class() {
 
 	var testArea = []; for(var i in area) testArea.push('[' + area[i].name + ']'); testArea = testArea.join(', ');
 
-	// ãƒ†ã‚¹ãƒˆè¦³ç‚¹é …ç›®ã®è¡Œã«"æ¸ˆ"ãŒã‚ã‚‹å ´åˆã¯é›†è¨ˆå¯¾è±¡å¤–ã¨ã™ã‚‹ã€‚
-	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "B") + " LIKE 'ãƒ†ã‚¹ãƒˆè¦³ç‚¹é …ç›®'");
+	// ƒeƒXƒgŠÏ“_€–Ú‚Ìs‚É"Ï"‚ª‚ ‚éê‡‚ÍWŒv‘ÎÛŠO‚Æ‚·‚éB
+	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "B") + " LIKE 'ƒeƒXƒgŠÏ“_€–Ú'");
 	if(!cn.eof()) {
 		for (var i = 0; i < cn.count(); i++) {
-			var value = cn.item(i); if(value != null && value.match(/^æ¸ˆ$/)) area[i].inv = 1;
+			var value = cn.item(i); if(value != null && value.match(/^Ï$/)) area[i].inv = 1;
 		}
 	}
 	cn.close();
 
-	// çµæœæ¬„ã®ãƒã‚§ãƒƒã‚¯(OKã‹å¦ã‹)
+	// Œ‹‰Ê—“‚Ìƒ`ƒFƒbƒN(OK‚©”Û‚©)
 	sql = []; for(var i = 2; i < 7; i++) sql.push(cn.row(table, 'R' + i) + " IS NULL");
-	cn.select(testArea + " FROM [" + table + "] WHERE " + sql.join(" AND ") + " AND "+ cn.row(table, 'R7') + " LIKE 'çµæœ'");
+	cn.select(testArea + " FROM [" + table + "] WHERE " + sql.join(" AND ") + " AND "+ cn.row(table, 'R7') + " LIKE 'Œ‹‰Ê'");
 	if(!cn.eof()) {
 		for (var i = 0; i < cn.count(); i++) {
 			var value = cn.item(i); if(value == null || area[i].inv) continue;
@@ -181,10 +181,10 @@ function count_class() {
 	}
 	cn.close();
 	
-	// å®Ÿæ–½æ—¥ã®å–å¾—
+	// À{“ú‚Ìæ“¾
 	var flag = false;
 	var sql = []; for(var i in area) sql.push("[" + area[i].name + "] IS NOT NULL");
-	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "G") + " LIKE 'å®Ÿæ–½æ—¥' AND " + sql.join(' AND '));
+	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "G") + " LIKE 'À{“ú' AND " + sql.join(' AND '));
 	if(!cn.eof()) {
 		for(var i = 0; i < cn.count(); i++) {
 			var date = cn.item(i); if(!date && area[i].inv) continue;
@@ -196,7 +196,7 @@ function count_class() {
 	}
 	cn.close();
 	
-	// å®Ÿæ–½æ—¥ã®å–å¾—ãã®ï¼’
+	// À{“ú‚Ìæ“¾‚»‚Ì‚Q
 	if(flag) {
 		var year = new Date().getFullYear();
 		var sql = [];
@@ -212,8 +212,8 @@ function count_class() {
 		cn.close();
 	}
 
-	// NGã®å–å¾—
-	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "G") + " LIKE 'éšœå®³ç¥¨'");
+	// NG‚Ìæ“¾
+	cn.select(testArea + " FROM [" + table + "] WHERE " +cn.row(table, "G") + " LIKE 'áŠQ•['");
 	if(!cn.eof()) {
 		for(var i = 0; i < cn.count(); i++) {
 			var value = cn.item(i); if(!value || area[i].inv) continue;
@@ -232,16 +232,16 @@ function count_class() {
 		}
 	}
 	for(var i in area) {
-		count.ä»¶æ•° += area[i].cnt - area[i].inv;
-		count.æ¸ˆ   += area[i].inv;
-		count.å®Ÿæ–½ += area[i].exe;
+		count.Œ” += area[i].cnt - area[i].inv;
+		count.Ï   += area[i].inv;
+		count.À{ += area[i].exe;
 		count.OK   += area[i].ok;
 		count.NG   += area[i].ng;
 		
 		if('date' in area[i]) {
 			var date = area[i].date;
-			if(!(date in count.date)) count.date[date] = { å®Ÿæ–½ : 0, OK : 0, NG : 0 };
-			count.date[date].å®Ÿæ–½ += area[i].exe;
+			if(!(date in count.date)) count.date[date] = { À{ : 0, OK : 0, NG : 0 };
+			count.date[date].À{ += area[i].exe;
 			count.date[date].OK   += area[i].ok;
 			count.date[date].NG   += area[i].ng;
 		}
@@ -251,7 +251,7 @@ var s = [count.name]; for(var d in count.date) s.push(d); trace('DATE:'.bold() +
 	return true;
 }
 
-//ã‚µãƒ¼ãƒ“ã‚¹===========================================================================================================
+//ƒT[ƒrƒX===========================================================================================================
 function count_service() {
 	var file = ph.files[ph.file].file;
 	var cn = ph.cn;
@@ -260,19 +260,19 @@ function count_service() {
 	
 	if(!(name in ph.count))
 		ph.count[name] = {
-			name	: ph.name + '(ã‚µãƒ¼ãƒ“ã‚¹)',
-			ä»¶æ•°	: 0,
-			æ¸ˆ		: 0,
-			å®Ÿæ–½	: 0,
+			name	: ph.name + '(ƒT[ƒrƒX)',
+			Œ”	: 0,
+			Ï		: 0,
+			À{	: 0,
 			OK		: 0,
 			NG		: 0,
 			date	: {},
 			sheet	: []
 		};
 	var count = ph.count[name];
-	var cnt = {ä»¶æ•° : 0, æ¸ˆ : 0, å®Ÿæ–½ : 0, OK : 0, NG : 0};
+	var cnt = {Œ” : 0, Ï : 0, À{ : 0, OK : 0, NG : 0};
 
-	// ã‚¯ãƒ©ã‚¹ç‰©ç†å
+	// ƒNƒ‰ƒX•¨—–¼
 	count.value = table.replace(/['$]/, "");	//'
 	
 	count.sheet.push({});
@@ -282,7 +282,7 @@ function count_service() {
 trace(cn.item("B")+","+cn.item("I")+","+cn.item("R11")+","+cn.item("R13"));
 		if(!cn.item("B").match(/^\d+$/) || !cn.item("I")) continue;
 
-		count.ä»¶æ•°++; flag = true;
+		count.Œ”++; flag = true;
 		var exe = exe, ok = 0, ng = 0, date, ng_date;
 		for(var i = 0; i < 3; i++) {
 			if(ok) continue;
@@ -294,24 +294,24 @@ trace(cn.item("B")+","+cn.item("I")+","+cn.item("R11")+","+cn.item("R13"));
 			if(d != null && !date) date = new Date(d).ToString();
 
 			exe = 1;
-			if(value.match(/â—‹/)) ok = 1;
-			if(value.match(/Ã—/)) ng = 1;
+			if(value.match(/›/)) ok = 1;
+			if(value.match(/~/)) ng = 1;
 			
 			if(d != null && ng) ng_date = new Date(d).ToString();
 		}
 		
 		
-		count.å®Ÿæ–½ += exe;
+		count.À{ += exe;
 		count.OK   += ok;
 		count.NG   += ng;
 		
 		if(date) {
-			if(!(   date in count.date)) count.date[   date] = {å®Ÿæ–½ : 0, OK : 0, NG : 0};
-			count.date[date].å®Ÿæ–½ += exe;
+			if(!(   date in count.date)) count.date[   date] = {À{ : 0, OK : 0, NG : 0};
+			count.date[date].À{ += exe;
 			count.date[date].OK   += ok;
 		}
 		if(ng_date) {
-			if(!(ng_date in count.date)) count.date[ng_date] = {å®Ÿæ–½ : 0, OK : 0, NG : 0};
+			if(!(ng_date in count.date)) count.date[ng_date] = {À{ : 0, OK : 0, NG : 0};
 			count.date[ng_date].NG += ng;
 		}
 	}
@@ -321,11 +321,11 @@ var s = [count.name]; for(var d in count.date) s.push(d); trace('DATE:'.bold() +
 	return flag;
 }
 
-//HTMLã®æ§‹æˆ====================================================================================================================
+//HTML‚Ì\¬====================================================================================================================
 function Phase3() {
 
 for(var id in ph.count) { var s = [];  for(var d in ph.count[id].date) s.push(d); trace('DATE'.bold() + ph.count[id].name + ',' + s.join(',')) }
-	var sum = { ä»¶æ•° : 0, æ¸ˆ : 0, å®Ÿæ–½ : 0, OK : 0, NG : 0 };
+	var sum = { Œ” : 0, Ï : 0, À{ : 0, OK : 0, NG : 0 };
 
 	var dateList = [];
 	var dateCount = [];
@@ -341,7 +341,7 @@ for(var id in ph.count) { var s = [];  for(var d in ph.count[id].date) s.push(d)
 	}
 	for(var date = new Date(min), i = 0; date <= max; date.setDate(date.getDate() + 1), i++) {
 		dateList[i] = date.ToString();
-		dateCount[i] = { å®Ÿæ–½:0, OK:0 };
+		dateCount[i] = { À{:0, OK:0 };
 	}
 trace('DATE'.bold() + dateList.join(","));
 
@@ -349,7 +349,7 @@ trace('DATE'.bold() + dateList.join(","));
 	var thead = document.createElement('thead');
 	var tr = document.createElement('TR');
 	tr.style.fontSize = 'xx-small';
-	var ar = ['ã‚¯ãƒ©ã‚¹', 'ä»¶æ•°', 'å®Ÿæ–½', 'OK', 'NG', 'å¯¾è±¡å¤–'];
+	var ar = ['ƒNƒ‰ƒX', 'Œ”', 'À{', 'OK', 'NG', '‘ÎÛŠO'];
 	for(var i in ar) {
 		var th = document.createElement('TH');
 		if(i > 0) {
@@ -388,9 +388,9 @@ trace('DATE'.bold() + dateList.join(","));
 	for(var i in key) {
 
 		var obj = ph.count[key[i]];
-		sum.ä»¶æ•° += obj.ä»¶æ•°;
-		sum.æ¸ˆ   += obj.æ¸ˆ;
-		sum.å®Ÿæ–½ += obj.å®Ÿæ–½;
+		sum.Œ” += obj.Œ”;
+		sum.Ï   += obj.Ï;
+		sum.À{ += obj.À{;
 		sum.OK   += obj.OK;
 		sum.NG   += obj.NG;
 
@@ -401,7 +401,7 @@ trace('DATE'.bold() + dateList.join(","));
 		if(obj.value) td.innerHTML += br + "(" + obj.value + ")";
 		tr.appendChild(td);
 
-		var ar = ['ä»¶æ•°', 'å®Ÿæ–½', 'OK', 'NG', 'æ¸ˆ'];
+		var ar = ['Œ”', 'À{', 'OK', 'NG', 'Ï'];
 		for(var j in ar) {
 			var td = document.createElement('TD');
 			td.align = 'right'; td.rowSpan = 2;
@@ -409,7 +409,7 @@ trace('DATE'.bold() + dateList.join(","));
 			tr.appendChild(td);
 		}
 
-		var ar = ['å®Ÿæ–½', 'å®Œäº†'];
+		var ar = ['À{', 'Š®—¹'];
 		for(var j in ar) {
 			var td = document.createElement('TD');
 			td.style['font-size'] = 'x-small';
@@ -440,8 +440,8 @@ trace('DATE'.bold() + dateList.join(","));
 	var tfoot = document.createElement('tfoot');
 	var tr = document.createElement('TR');
 	var td = document.createElement('TD');
-	td.align = 'left'; td.rowSpan = 2; td.innerHTML = 'åˆè¨ˆ'; tr.appendChild(td);
-	var ar = ['ä»¶æ•°', 'å®Ÿæ–½', 'OK', 'NG', 'æ¸ˆ'];
+	td.align = 'left'; td.rowSpan = 2; td.innerHTML = '‡Œv'; tr.appendChild(td);
+	var ar = ['Œ”', 'À{', 'OK', 'NG', 'Ï'];
 	for(var j in ar) {
 		var td = document.createElement('TD');
 		td.align = 'right'; td.rowSpan = 2;
@@ -449,7 +449,7 @@ trace('DATE'.bold() + dateList.join(","));
 		tr.appendChild(td);
 	}
 
-	var ar = ['å®Ÿæ–½', 'å®Œäº†'];
+	var ar = ['À{', 'Š®—¹'];
 	for(var j in ar) {
 		var td = document.createElement('TD');
 		td.style.fontSize = 'x-small';
@@ -461,7 +461,7 @@ trace('DATE'.bold() + dateList.join(","));
 			var td = document.createElement('TD');
 			td.style['font-size'] = 'x-small';
 			td.align = 'right';
-			if(dateCount[d].OK || dateCount[d].å®Ÿæ–½) td.innerHTML = dateCount[d][a];
+			if(dateCount[d].OK || dateCount[d].À{) td.innerHTML = dateCount[d][a];
 			else td.innerHTML = sp;
 			tr.appendChild(td);
 		}
@@ -482,13 +482,13 @@ trace('DATE'.bold() + dateList.join(","));
 </head><body>
 
 <form name="form">
-	<input type="text" name="begin" size=14 length=10>ï½<input type="text" name="end" size=14 length=10><input type="text" name="debug" size=1>
+	<input type="text" name="begin" size=14 length=10>`<input type="text" name="end" size=14 length=10><input type="text" name="debug" size=1>
 	<br>
-	æ¤œç´¢ãƒ‘ã‚¹ <span id="ini"></span><br>
+	ŒŸõƒpƒX <span id="ini"></span><br>
 	<div style="font-size:x-small">
-		<input type="checkbox" name="subfolder" style="width:10px;height:10px;vertical-align:middle;"> ã‚µãƒ–ãƒ•ã‚©ãƒ«ãƒ€ã‚‚æ¤œç´¢ã™ã‚‹
+		<input type="checkbox" name="subfolder" style="width:10px;height:10px;vertical-align:middle;"> ƒTƒuƒtƒHƒ‹ƒ_‚àŒŸõ‚·‚é
 		&nbsp;
-		<input type="button" name="execute" value=" å®Ÿè¡Œ ">
+		<input type="button" name="execute" value=" Às ">
 	</div>
 </form>
 
@@ -497,7 +497,7 @@ trace('DATE'.bold() + dateList.join(","));
 </body><script><!--
 
 //====================================================================================================================
-// æ—¥ä»˜ã®è¨­å®š
+// “ú•t‚Ìİ’è
 d = new Date();
 document.form.end.value = d.ToString();
 d.setDate(d.getDate()+1); d.setMonth(d.getMonth()-1);
@@ -505,7 +505,7 @@ document.form.begin.value = d.ToString();
 
 var fileField = new CreateFileField('ini', GetFileName().replace(/\.[^\.]*$/, '.ini'));
 
-//ã‚¤ãƒ™ãƒ³ãƒˆå®šç¾©====================================================================================================================
+//ƒCƒxƒ“ƒg’è‹`====================================================================================================================
 document.form.execute.onclick = function() {
 	DEBUG = parseInt('0'+document.form.debug.value);
 	this.disabled = true;

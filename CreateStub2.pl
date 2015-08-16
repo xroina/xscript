@@ -327,4 +327,3 @@ sub find_define {
 sub debug {
 	print "[STUB] $_[0]\n" if $stub->{debug};
 }
-

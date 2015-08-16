@@ -12,10 +12,15 @@ sub new {
 	my($this, $text, $kind) = @_;
 	$text = '' unless defined $text;
 	$kind = '' unless defined $kind;
-	$this = bless {prv=>undef, nxt=>undef, kind=>$kind, text=>$text}, $this;
-	if(ref($text) =~ /^(HASH|Token)$/ ) { $this->{$_} = $text->{$_} foreach keys %$text }
-	$this->{prv} = $this;
-	$this->{nxt} = $this;
+	$this = bless {
+		prv=>undef,
+		nxt=>undef,
+		kind=>$kind,
+		text=>$text
+	}, $this;
+	if(ref($text) =~ /^HASH$/ ) { $this->{$_} = $text->{$_} foreach keys %$text; }
+	$this->{prv} = $this->{nxt} = $this;
+	if(ref($text) =~ /^Token$/ ) { $this->{$_} = $text->{$_} foreach keys %$text; }
 	return $this;
 }
 
