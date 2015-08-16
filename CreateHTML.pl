@@ -50,7 +50,11 @@ $param->{output} = "$title.html" unless $param->{output};
 $param->{title}  = $title        unless $param->{title};
 
 my $src = {};
-Execute(@{$param->{path}});
+foreach my $path(@{Utility::getRecursivePath($param->{path}, 'h|hpp|c|cc|cpp')}) {
+	my($file, $class) = $path =~ m#(([^/]+)\..*)$#;
+	$src->{$file}->{lex} = new LexicalAnalyzer({file=>$path, debug=>$param->{debug}});
+	$src->{$file}->{lex}->AnalyzeCPP();
+}
 
 my $lex;
 foreach(sort{
@@ -73,33 +77,6 @@ system "xdg-open $param->{output} > /dev/null 2>&1 &" if $param->{xdg};
 debug("END");
 
 exit;
-
-sub Execute {
-    my @paths = @_;
-    foreach my $path(@paths) {
-        if(-d $path) {
-            $path =~ s/\/$//;
-            Execute($_) foreach glob("$path/*");
-        }
-        elsif(-f $path) {
-            next unless $path =~ /\.(h|c|cc|cpp)$/;
-            # 絶対パスを求める
-            use Cwd 'getcwd';
-            $path = getcwd()."/$path" unless $path =~ m#^/#;
-            $path =~ s#/(\.?/)+#/#mg;
-            $path =~ s#[^/]+/\.\./##mg;
-
-            # ファイル名を求める
-            my($file, $class) = $path =~ m#(([^/]+)\..*)$#;
-            
-            $src->{$file}->{lex} = new LexicalAnalyzer({file=>$path, debug=>$param->{debug}});
-            $src->{$file}->{lex}->AnalyzeCPP();
-        }
-        elsif($path =~ /\*/) {
-            Execute($_) foreach glob("$path");
-        }
-    }
-}
 
 sub CreateHtml {
     my($lex) = @_;

@@ -1,35 +1,34 @@
-# ● astahスケルトンコンバータ
-#
-#   astahで出力されるスケルトンをDoxygen対応方式に変換します。
-#
-# ● 準備
-#
-#   スクリプトをLinux環境にインストールします。端末から以下のコマンドを実施してください
-#
-#       $ mkdir ~/bin/
-#       $ ln -s ~/workspace/develop/MACP/MFOP/test/MFOPTESTCM0010/script/AstahSkeletonConverter.pl ~/bin/AstahSkeletonConverter
-#       $ chmod 755 ~/bin/AstahSkeletonConverter
-#
-# ● 使い方
-#
-#   1.astah でC++スケルトンを作成してください。
-#       「ツール(T)」→「C++(C)」→「C++スケルトンコードの作成(C)」
-#   2.できたスケルトンソースを開発環境にコピーしてください。
-#   3.namespaceやincludeパスなどの修正を実施してください。
-#   4.念のためにバックアップをとってください。
-#   5.astahスケルトンコンバータを実行します。端末から以下のコマンドを実施してください
-#
-#       $ AstahSkeletonConverter "*"
-#
-#     開発環境のinc,srcにいれてしまった場合はこんな感じで実施してください。
-#
-#       $ cd ~/workspace/develop/MACP/MFOP/MFOP1050/MFOP1050CM0020
-#       $ AstahSkeletonConverter -I./inc -I./src "*"
-#
-#     ネームスペースの日本語名はスケルトンから取得できないので、事前に分かっていれば、
-#     -N オプションで指定できます。
-#
-#       $ AstahSkeletonConverter -I./inc -I./src -N"フライトリストストリップ情報処理機能" "*"
-#
-#   6.ソースファイルを書き換えますので内容を確認してみてください。
-#
+● astahスケルトンコンバータ
+
+  astahで出力されるスケルトンをDoxygen対応方式に変換します。
+
+● 準備
+
+  スクリプトをLinux環境にインストールします。端末から以下のコマンドを実施してください
+
+      $ mkdir ~/bin/
+      $ ln -s ~/workspace/develop/MACP/MFOP/test/MFOPTESTCM0010/script/AstahSkeletonConverter.pl ~/bin/AstahSkeletonConverter
+      $ chmod 755 ~/bin/AstahSkeletonConverter
+
+● 使い方
+
+  1.astah でC++スケルトンを作成してください。
+      「ツール(T)」→「C++(C)」→「C++スケルトンコードの作成(C)」
+  2.できたスケルトンソースを開発環境にコピーしてください。
+  3.namespaceやincludeパスなどの修正を実施してください。
+  4.念のためにバックアップをとってください。
+  5.astahスケルトンコンバータを実行します。端末から以下のコマンドを実施してください
+
+      $ AstahSkeletonConverter "*"
+
+    開発環境のinc,srcにいれてしまった場合はこんな感じで実施してください。
+
+      $ cd ~/workspace/develop/MACP/MFOP/MFOP1050/MFOP1050CM0020
+      $ AstahSkeletonConverter -I./inc -I./src "*"
+
+    ネームスペースの日本語名はスケルトンから取得できないので、事前に分かっていれば、
+    -N オプションで指定できます。
+
+      $ AstahSkeletonConverter -I./inc -I./src -N"フライトリストストリップ情報処理機能" "*"
+
+  6.ソースファイルを書き換えますので内容を確認してみてください。

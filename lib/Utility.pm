@@ -132,4 +132,28 @@ sub toHtml {
 	return $_;
 }
 
+sub getRecursivePath {
+	my($in, $ext) = @_;
+	my $ret = [];
+	foreach my $path(@$in) {
+		if(-d $path) {
+			$path =~ s#/$##;
+			getRecursivePath($_, $ext) foreach glob "$path/*";
+		}
+		elsif(-f $path) {
+			next if $ext && $path !~ /\.($ext)$/;
+			unless($path =~ m#^/#) {
+				use Cwd 'getcwd';
+				$path = getcwd()."/$path";
+			}
+			$path =~ s#/(\.?/)+#/#mg;
+			$path =~ s#[^/]+/\.\./##mg;
+			push @$ret, $path;
+		}
+		elsif($path =~ /\*/) {
+			getRecursivePath($_, $ext) foreach glob $path;
+		}
+	}
+}
+
 1;

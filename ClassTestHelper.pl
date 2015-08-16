@@ -53,7 +53,12 @@ my $class_name     = $title;    # TODO classname処理
 my $namespace_name = '.*';      # TODO namespace処理
 
 my $test = {path=>[]};
-Execute(@{$param->{path}});
+foreach my $path(@{Utility::getRecursivePath($param->{path}, 'h|hpp|c|cc|cpp')}) {
+	my($file, $name, $h) = $path =~ m#(([^/]+)\.(.+?))$#;
+	my $lex = new LexicalAnalyzer({file=>$path, debug=>$param->{debug}});
+	$lex->AnalyzeCPP();
+	push @{$test->{path}}, {path=>$path, file=>$file, name=>$name, h=>$h, lex =>$lex};
+}
 
 my $lex;
 foreach(sort{
@@ -69,9 +74,9 @@ for(my $t = $lex->{begin}; !$t->eof; $t = parse($t)) {}
 
 # クラス変数のコメントを取得する
 foreach my $ns(grep{/^(namespace|class)_/} keys %$test) {
-    my $class = $test->{$ns};
+	my $class = $test->{$ns};
 	if($class && 'ARRAY' eq ref $class->{valiable}) {
-        foreach my $t(@{$class->{valiable}}) {
+		foreach my $t(@{$class->{valiable}}) {
 			my $tt = $t->next('(space|comment)_.*')->next('!(space|comment)_.*');
 			my $comment = getComment($t, $tt);
 			$comment =~ s/^\s*(.*?)\s*$/$1/m;
@@ -89,26 +94,6 @@ system "xdg-open $param->{output} > /dev/null 2>&1 &" if $param->{xdg};
 debug("END");
 
 exit;
-
-sub Execute {
-    my @paths = @_;
-    foreach my $path(@paths) {
-        if(-d $path) {
-            $path =~ s/\/$//;
-            Execute($_) foreach glob "$path/*";
-        }
-        elsif(-f $path) {
-            next unless $path =~ /\.(h|c|cc|cpp)$/;
-            my($file, $name, $h) = $path =~ /(([^\/]+)\.(.+?))$/;
-            my $lex = new LexicalAnalyzer({file=>$path, debug=>$param->{debug}});
-            $lex->AnalyzeCPP();
-            push @{$test->{path}}, {path=>$path, file=>$file, name=>$name, h=>$h, lex =>$lex};
-        }
-        elsif($path =~ /\*/) {
-            Execute($_) foreach glob("$path");
-        }
-    }
-}
 
 sub parse {
     my($t) = @_;

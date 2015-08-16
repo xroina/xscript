@@ -25,7 +25,7 @@ $param->{help} = 1 unless @{$param->{path}};
 my($progpath, $prog) = $0 =~ /^(.*?)([^\/]+)$/;
 if($param->{help}) {
     print <<"USAGE";
-usage $prog [OPTION]... [SORCE]...
+usage $prog [OPTION]... [CLASS]...
 
 astahで出力されるスケルトンをDoxygen対応方式に変換します。
 
@@ -37,7 +37,7 @@ OPTION:
                             デバックモードでは標準出力に大量のログを出力します
   -h, -help                 このヘルプを表示します。
 NOTE:
-  [SORCE]には、ソースファイル名を拡張子を除いた部分を指定します。
+  [CLASS]には、ソースファイル名の拡張子を除いた部分を指定します。
   フォルダ内すべてを指定する場合は"*"を指定してください。
 USAGE
     exit 0;

@@ -53,8 +53,34 @@ USAGE
 
 my $step = {};
 
+# パスを再帰的に検索し、ステップカウントを実施する。
 print "file, StepCount, CodeLineCount, CommentLineCount, EmptyLineCount, LineCount\n";
-Execute(@{$param->{path}});
+foreach my $path(@{Utility::getRecursivePath($param->{path}, 'h|hpp|c|cc|cpp')}) {
+	my $src = LoadFile($path);
+	next unless $src;
+	my($brief) = $src =~ /^\s*\*\s*\@brief\s*(.*)$/mg;  # ファイルヘッダ取得
+	$brief =~ s/^.*利用する//;
+	$brief =~ s/[のを].*$//;
+
+	# ステップ数, 有効行数, コメント行数, 空白行数, 全行数
+	my ($CodeLineCount, $StepCount, $CommentLineCount, $EmptyLineCount, $LineCount) = CountLines($src);
+
+	# ファイル名クラス名を求める
+	my($file, $class) = $path =~ m#(([^/]+)\..*)$#;
+	print "$file, $StepCount, $CodeLineCount, $CommentLineCount, $EmptyLineCount, $LineCount\n";
+
+	# 集計用ハッシュへ登録する
+	$step->{$path} = {
+		file                    => $file,
+		class                   => $class,
+		name                    => $brief,
+		StepCount               => $StepCount,
+		CodeLineCount           => $CodeLineCount,
+		CommentLineCount        => $CommentLineCount,
+		EmptyLineCount          => $EmptyLineCount,
+		LineCount               => $LineCount,
+	};
+}
 
 CreateHTML();
 
@@ -64,54 +90,6 @@ system "xdg-open $param->{output} > /dev/null 2>&1 &" if $param->{xdg};
 
 exit;
 
-# パスを再帰的に検索し、ステップカウントを実施する。
-sub Execute {
-    my @paths = @_;
-    foreach my $path(@paths) {
-        if(-d $path) {
-            $path =~ s/\/$//;
-            Execute($_) foreach glob("$path/*");
-        }
-        elsif(-f $path) {
-            # 1.1.拡張子チェック(h,cpp,c,ccのみ処理できる）
-            next unless $path =~ /\.(h|c|cc|cpp)$/;
-
-            my $src = LoadFile($path);
-            next unless $src;
-            my($brief) = $src =~ /^\s*\*\s*\@brief\s*(.*)$/mg;  # ファイルヘッダ取得
-            $brief =~ s/^.*利用する//;
-            $brief =~ s/[のを].*$//;
-
-            # ステップ数, 有効行数, コメント行数, 空白行数, 全行数
-            my ($CodeLineCount, $StepCount, $CommentLineCount, $EmptyLineCount, $LineCount) = CountLines($src);
-
-            # 絶対パスを求める
-            use Cwd 'getcwd';
-            $path = getcwd()."/$path" unless $path =~ m#^/#;
-            $path =~ s#/(\.?/)+#/#mg;
-            $path =~ s#[^/]+/\.\./##mg;
-
-            # ファイル名クラス名を求める
-            my($file, $class) = $path =~ m#(([^/]+)\..*)$#;
-            print "$file, $StepCount, $CodeLineCount, $CommentLineCount, $EmptyLineCount, $LineCount\n";
-
-            # 集計用ハッシュへ登録する
-            $step->{$path} = {
-                file                    => $file,
-                class                   => $class,
-                name                    => $brief,
-                StepCount               => $StepCount,
-                CodeLineCount           => $CodeLineCount,
-                CommentLineCount        => $CommentLineCount,
-                EmptyLineCount          => $EmptyLineCount,
-                LineCount               => $LineCount,
-            };
-        }
-        elsif($path =~ /\*/) {
-            Execute($_) foreach glob("$path");
-        }
-    }
-}
 
 # ステップカウントの結果をHTMLに出力する。
 sub CreateHTML {
