@@ -1,10 +1,10 @@
 <html><head>
 <title>ExcelSelect</title>
-<meta http-equiv="X-UA-Compatible" content="IE=10" />
+<meta http-equiv="X-UA-Compatible" content="IE=10">
 <link rel="stylesheet" href="css/base.css">
-<script type="text/javascript" src="js/Utility.js" />
-<script type="text/javascript" src="js/Connection.js" />
-<script type="text/javascript" src="js/FileHandle.js" />
+<script type="text/javascript" src="js/Utility.js"></script>
+<script type="text/javascript" src="js/Connection.js"></script>
+<script type="text/javascript" src="js/FileHandle.js"></script>
 <script langage="text/javascript"><!--
 
 var fileField;
@@ -30,13 +30,13 @@ function Execute() {
 	document.getElementById('result').innerHTML = "";
 	
 	if(document.form.find.value.length == 0) {
-		alert('æ¤œç´¢æ–‡å­—åˆ—ã‚’æŒ‡å®šã—ã¦ãã ã•ã„');
+		alert('ŒŸõ•¶š—ñ‚ğw’è‚µ‚Ä‚­‚¾‚³‚¢');
 		return;
 	}
 
 	if(url.match(/^[^\/]+\/\/[\/\\]{2}/))
-		if(!confirm("ãƒ„ãƒ¼ãƒ«ã®å®Ÿè¡Œãƒ‘ã‚¹ã«ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯ãƒ‘ã‚¹ãŒæŒ‡å®šã•ã‚Œã¦ã„ã‚‹ãŸã‚ãƒ•ã‚¡ã‚¤ãƒ«ã®æ•°ã ã‘ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯è­¦å‘ŠãŒç™ºç”Ÿã—ã¾ã™ã€‚\n"
-			+ "ãƒ„ãƒ¼ãƒ«ã‚’ãƒ­ãƒ¼ã‚«ãƒ«ãƒ‡ã‚£ã‚¹ã‚¯ã«ã‚³ãƒ”ãƒ¼ã—ã¦å®Ÿè¡Œã™ã‚‹ã“ã¨ã‚’ãŠã™ã™ã‚ã—ã¾ã™ã€‚\nå®Ÿè¡Œã—ã¦ã‚‚ã‚ˆã‚ã—ã„ã§ã™ã‹ï¼Ÿ"))
+		if(!confirm("ƒc[ƒ‹‚ÌÀsƒpƒX‚Éƒlƒbƒgƒ[ƒNƒpƒX‚ªw’è‚³‚ê‚Ä‚¢‚é‚½‚ßƒtƒ@ƒCƒ‹‚Ì”‚¾‚¯ƒlƒbƒgƒ[ƒNŒx‚ª”­¶‚µ‚Ü‚·B\n"
+			+ "ƒc[ƒ‹‚ğƒ[ƒJƒ‹ƒfƒBƒXƒN‚ÉƒRƒs[‚µ‚ÄÀs‚·‚é‚±‚Æ‚ğ‚¨‚·‚·‚ß‚µ‚Ü‚·B\nÀs‚µ‚Ä‚à‚æ‚ë‚µ‚¢‚Å‚·‚©H"))
 			return;
 
 	ph.files   = [];
@@ -46,7 +46,7 @@ function Execute() {
 	try {
 		ph.reg     = new RegExp(document.form.find.value);
 	} catch(e) {
-		alert('æ¤œç´¢æ–‡å­—åˆ—ã®æ­£è¦è¡¨ç¾ãŒç„¡åŠ¹ã§ã™');
+		alert('ŒŸõ•¶š—ñ‚Ì³‹K•\Œ»‚ª–³Œø‚Å‚·');
 		return;
 	}
 	document.form.execute.disabled = true;
@@ -60,7 +60,7 @@ function Phase0() {
 	var em = new Enumerator(folder.Files);
 	for(em.moveFirst(); !em.atEnd(); em.moveNext()) {
 		var file = em.item().Name;
-		if(!file.match(/\.xlsx?$/)) { info('<font color="blue">Excelãƒ•ã‚¡ã‚¤ãƒ«ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚ã‚¹ã‚­ãƒƒãƒ—ã—ã¾ã™</font>:' + file); continue; }
+		if(!file.match(/\.xlsx?$/)) { info('<font color="blue">Excelƒtƒ@ƒCƒ‹‚Å‚Í‚ ‚è‚Ü‚¹‚ñBƒXƒLƒbƒv‚µ‚Ü‚·</font>:' + file); continue; }
 		ph.files.push({'path': ph.Folders[0], 'file': file});
 	}
 	em = null;
@@ -75,9 +75,9 @@ function Phase0() {
 	ph.Folders.shift();
 
 	var p = -1;
-	if(ph.Folders.length > 0)    { p = 0; info('ã‚µãƒ–ãƒ•ã‚©ãƒ«ãƒ€ã‚’æ¤œç´¢ã—ã¦ã„ã¾ã™:' + ph.Folders[0]); }
+	if(ph.Folders.length > 0)    { p = 0; info('ƒTƒuƒtƒHƒ‹ƒ_‚ğŒŸõ‚µ‚Ä‚¢‚Ü‚·:' + ph.Folders[0]); }
 	else if(ph.files.length > 0) { p = 1; ph.file  = 0; }
-	else info('<font color="red">å¯¾è±¡ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒè¦‹å½“ãŸã‚Šã¾ã›ã‚“ã§ã—ãŸã€‚ãƒ‘ã‚¹ã‚’è¦‹ç›´ã—ã¦ãã ã•ã„</font>');
+	else info('<font color="red">‘ÎÛ‚Ìƒtƒ@ƒCƒ‹‚ªŒ©“–‚½‚è‚Ü‚¹‚ñ‚Å‚µ‚½BƒpƒX‚ğŒ©’¼‚µ‚Ä‚­‚¾‚³‚¢</font>');
 	if(p >= 0) setTimeout('Phase' + p + '()', TIMEOUT);
 }
 
@@ -86,7 +86,7 @@ function Phase1() {
 	if(!('file' in ph)) return;
 
 	ph.name    = ph.files[ph.file].name;
-	info('ãƒ•ã‚¡ã‚¤ãƒ«ï¼š"' + ph.files[ph.file].file + '" ã‚’æ¤œç´¢ã—ã¾ã™)');
+	info('ƒtƒ@ƒCƒ‹F"' + ph.files[ph.file].file + '" ‚ğŒŸõ‚µ‚Ü‚·)');
 
 	ph.cn = new Connection(MSExcel12_OLE_Driver, {
 		file:ph.files[ph.file].path + "/" + ph.files[ph.file].file,
@@ -114,21 +114,21 @@ function Phase2() {
 		var line = 0;
 		for(var line = 0; !cn.eof(); cn.next()) {
 			line++;
-			// ï¼‘è¡Œå–å¾—
+			// ‚Psæ“¾
 			var values = [];
 			for (var i = 0; i < cn.count(); i++) {
 				var text = cn.item(i);
 				var type = getType(text);
 				if(type === 'Null') text = '';
 				if(type !== 'String') text = new String(text);
-				values[i] = text.replace(/^\s*(.*?)\s*$/, function(s,p){return p})	// å‰å¾Œã®ã‚¹ãƒšãƒ¼ã‚¹ã‚’æ¶ˆã™
-					.replace(/\015\012|\012|\015/gm, '')							// æ”¹è¡Œã‚’æ¶ˆã™
-					.replace(/\t/gm, '    ')										// tabã‚’æ¶ˆã™
-					.toOneByte();													// åŠè§’æ–‡å­—ã«ã™ã‚‹
+				values[i] = text.replace(/^\s*(.*?)\s*$/, function(s,p){return p})	// ‘OŒã‚ÌƒXƒy[ƒX‚ğÁ‚·
+					.replace(/\015\012|\012|\015/gm, '')							// ‰üs‚ğÁ‚·
+					.replace(/\t/gm, '    ')										// tab‚ğÁ‚·
+					.toOneByte();													// ”¼Šp•¶š‚É‚·‚é
 			}
-			if(values.join('').length == 0) continue;		// ãƒ‡ãƒ¼ã‚¿ã®ãªã„è¡Œã¯é£›ã°ã™
+			if(values.join('').length == 0) continue;		// ƒf[ƒ^‚Ì‚È‚¢s‚Í”ò‚Î‚·
 			var str = values.join("\t");
-			if(str.match(ph.reg)) {							// æ¤œç´¢æ¡ä»¶ã«ãƒ’ãƒƒãƒˆã™ã‚‹ã‹
+			if(str.match(ph.reg)) {							// ŒŸõğŒ‚Éƒqƒbƒg‚·‚é‚©
 				if(!ph.data) ph.data = [];
 				ph.data.push({
 					file	: ph.files[ph.file].file,
@@ -158,14 +158,14 @@ function Phase2() {
 	if(p >= 0) setTimeout('Phase' + p + '()', TIMEOUT);
 }
 
-//HTMLã®æ§‹æˆ====================================================================================================================
+//HTML‚Ì\¬====================================================================================================================
 function Phase3() {
 
 	var tbl = document.createElement('table');
 	var thd = document.createElement('thead');
 	var tr,th,td;
 
-	// ãƒ˜ãƒƒãƒ€
+	// ƒwƒbƒ_
 	tr = document.createElement('tr');
 	th = document.createElement('th'); th.style.fontSize = 'xx-small';
 	th.innerHTML = '#';		tr.appendChild(th);
@@ -183,7 +183,7 @@ function Phase3() {
 	thd.appendChild(tr);
 	tbl.appendChild(thd);
 
-	// æœ¬ä½“
+	// –{‘Ì
 	var tbd = document.createElement('tbody');
 	var line = 0;
 	for(var i in ph.data) {
@@ -222,14 +222,14 @@ function Phase3() {
 
 <form name="form">
 <input type="text" name="debug" size=1>
-æ¤œç´¢ãƒ‘ã‚¹ <span id='xls'></span>
+ŒŸõƒpƒX <span id='xls'></span>
 <div style="font-size:x-small">
-<a href="https://msdn.microsoft.com/ja-jp/library/Cc392020.aspx">æ¤œç´¢æ–‡å­—åˆ—</a><input type="text" name="find" size=50 title="æ­£è¦è¡¨ç¾ã§å…¥åŠ›ã—ã¦ãã ã•ã„ã€‚
-ã‚»ãƒ«å†…ã®æ”¹è¡Œã¯ç„¡è¦–ã•ã‚Œã¾ã™ã€‚
-å…¨è§’è‹±æ•°ã¯åŠè§’æ–‡å­—ã§æ¤œç´¢ã—ã¦ãã ã•ã„ã€‚
-è¤‡æ•°ã®ã‚»ãƒ«ã«ã¾ãŸãŒã‚‹æ¤œç´¢ã¯ã‚¿ãƒ–(\t)ã§åŒºåˆ‡ã‚‹ã“ã¨ã§æ¤œç´¢ã§ãã¾ã™ã€‚">
-	<input type="checkbox" name="subfolder" style="width:10px;height:10px;vertical-align:middle;">&nbsp;ã‚µãƒ–ãƒ•ã‚©ãƒ«ãƒ€ã‚‚æ¤œç´¢ã™ã‚‹&nbsp;
-	<input type="button" name="execute" value=" å®Ÿè¡Œ ">
+<a href="https://msdn.microsoft.com/ja-jp/library/Cc392020.aspx">ŒŸõ•¶š—ñ</a><input type="text" name="find" size=50 title="³‹K•\Œ»‚Å“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B
+ƒZƒ‹“à‚Ì‰üs‚Í–³‹‚³‚ê‚Ü‚·B
+‘SŠp‰p”‚Í”¼Šp•¶š‚ÅŒŸõ‚µ‚Ä‚­‚¾‚³‚¢B
+•¡”‚ÌƒZƒ‹‚É‚Ü‚½‚ª‚éŒŸõ‚Íƒ^ƒu(\t)‚Å‹æØ‚é‚±‚Æ‚ÅŒŸõ‚Å‚«‚Ü‚·B">
+	<input type="checkbox" name="subfolder" style="width:10px;height:10px;vertical-align:middle;">&nbsp;ƒTƒuƒtƒHƒ‹ƒ_‚àŒŸõ‚·‚é&nbsp;
+	<input type="button" name="execute" value=" Às ">
 </div>
 </form>
 
