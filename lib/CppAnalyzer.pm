@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use utf8;
 use LexicalAnalyzer;
+use Class;
 
 use base 'LexicalAnalyzer';
 
@@ -19,6 +20,8 @@ use base 'LexicalAnalyzer';
 sub new {
 	my($this, $params) = @_;
 	$this = bless new LexicalAnalyzer($params), $this;
+	$this->{class} = new Class() unless ref($this->{class}) =~ /^Class$/
+	$this->{class}->{this} = $this->{class};
 	$this->Analyze;
 	return $this;
 }
@@ -90,8 +93,8 @@ my $substitution = {'and'=>'&&','and_eq'=>'&=','bitand'=>'&','bitor'=>'|','compl
 	'not'=>'!','not_eq'=>'!=','or'=>'||','or_eq'=>'|=','xor'=>'^','xor_eq'=>'^='};
 
 #===============================================================================
-
 # C++アナライザ本体
+#===============================================================================
 sub Analyze {
 	my($this) = @_;
 	$this->debug("Start Analyze");
